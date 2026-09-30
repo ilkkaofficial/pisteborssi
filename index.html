@@ -281,17 +281,17 @@
       </div>
       <div class="storage" id="storageStatus" role="status" aria-live="polite">
         <span class="storage-tag" id="storageLabel">Tarkistetaan tallennusta</span>
-        <span id="storageWarning" hidden></span>
+        <span id="storageWarning" hidden></span><button class="button compact" id="retrySave" type="button" hidden>Yritä tallennusta uudelleen</button>
       </div>
     </header>
     <main id="main">
       <section class="panel login-panel no-print" id="loginPanel" aria-labelledby="loginTitle">
         <h1 class="view-title" id="loginTitle">Kirjaudu</h1>
-        <p class="panel-intro">Oma perhetunnus. Tiedot pysyvät tässä selaimessa.</p>
+        <p class="panel-intro">Oma perhetunnus · kaikkien yhteinen pistetilanne.</p>
         <noscript><p class="notice">Pistebörssi tarvitsee JavaScriptin. Avaa HTML-tiedosto JavaScriptiä tukevassa Safarissa tai Chromessa, ei pelkässä tiedostoesikatselussa.</p></noscript>
         <form id="loginForm" novalidate>
           <div class="field"><label for="loginUsername">Käyttäjätunnus (etunimi)</label><input id="loginUsername" name="username" type="text" inputmode="text" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="40" placeholder="Esim. Ilkka" required></div>
-          <div class="field"><label for="loginPassword">Salasana</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" maxlength="128" required></div>
+          <div class="field"><label for="loginPassword">Salasana</label><input id="loginPassword" name="password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="go" maxlength="256" required></div>
           <p class="form-error" id="loginError" role="alert" hidden></p>
           <button class="button primary" type="button" id="loginSubmit">Kirjaudu sisään</button>
         </form>
@@ -352,15 +352,15 @@
       </section>
       <section id="view-family" role="tabpanel" aria-labelledby="tab-family" hidden>
         <div class="section-heading family-heading"><h2>Perhe ja tiedot</h2><a class="button compact help-link" href="#appHelp">Ohjeet</a></div>
-        <p class="notice" id="usernameNotice" hidden>Joiltakin henkilöiltä puuttuu tunnus tai salasana. Vanhempi voi määrittää ne henkilön kohdalta. Päällekkäistä etunimeä ei nimetä uudelleen automaattisesti; jo oleva salasana säilyy.</p>
+        <p class="notice" id="usernameNotice" hidden>Tuoduilta henkilöiltä voi puuttua verkkotunnus. Vanhempi luo tunnuksen henkilön kohdalta. Olemassa olevia verkkotilejä ei nollata.</p>
         <section class="panel account-panel no-print" id="accountPanel" aria-labelledby="passwordTitle">
-          <h2 id="passwordTitle">Oma salasana</h2><p class="panel-intro">Valitse oma, vähintään 8 merkin salasana.</p>
-          <p class="notice init-notice" id="initialPasswordNotice" hidden>Vaihda aloitussalasana omaan salasanaan.</p>
+          <h2 id="passwordTitle">Oma salasana</h2><p class="panel-intro">Valitse oma, vähintään 12 merkin salasana.</p>
+          <p class="notice init-notice" id="initialPasswordNotice" hidden>Vaihda aloitussalasana ennen ensimmäisiä kirjauksia.</p>
           <form id="passwordForm" novalidate>
             <div class="password-fields">
-              <div class="field"><label for="currentPassword">Nykyinen salasana</label><input id="currentPassword" name="current-password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="128"></div>
-              <div class="field"><label for="newPassword">Uusi salasana (8–128 merkkiä)</label><input id="newPassword" name="new-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="128"></div>
-              <div class="field"><label for="repeatPassword">Uusi salasana uudelleen</label><input id="repeatPassword" name="confirm-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="128"></div>
+              <div class="field"><label for="currentPassword">Nykyinen salasana</label><input id="currentPassword" name="current-password" type="password" autocomplete="current-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="256"></div>
+              <div class="field"><label for="newPassword">Uusi salasana (12–256 merkkiä)</label><input id="newPassword" name="new-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="256"></div>
+              <div class="field"><label for="repeatPassword">Uusi salasana uudelleen</label><input id="repeatPassword" name="confirm-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="256"></div>
             </div>
             <p class="form-error" id="passwordError" role="alert" hidden></p>
             <button class="button soft" type="button" id="passwordSubmit">Vaihda oma salasana</button>
@@ -373,7 +373,7 @@
             <form id="personForm" novalidate>
               <div class="field"><label for="personName">Nimi</label><input id="personName" type="text" autocomplete="off" maxlength="80" placeholder="Etunimi ja sukunimi" required></div>
               <div class="field"><label for="personUsername">Käyttäjätunnus</label><input id="personUsername" name="new-person-username" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="40" placeholder="Etunimi oletuksena" required></div>
-              <div class="field"><label for="personPassword">Tilapäinen salasana (8–128 merkkiä)</label><input id="personPassword" name="new-person-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="128" required></div>
+              <div class="field"><label for="personPassword">Tilapäinen salasana (12–256 merkkiä)</label><input id="personPassword" name="new-person-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="256" required></div>
               <div class="field"><label for="personRole">Rooli</label><select id="personRole"><option value="child">Lapsi</option><option value="parent">Vanhempi</option></select></div>
               <p class="form-error" id="personError" role="alert" hidden></p>
               <button class="button primary" id="personSubmit" type="button">Lisää henkilö</button>
@@ -382,13 +382,13 @@
         </div>
         <section class="panel" style="margin-block-start:22px" aria-labelledby="backupTitle">
           <h2 id="backupTitle">Varmuuskopio</h2>
-          <p class="panel-intro">Vie JSON talteen. Palautus korvaa tiedot ja kirjaa ulos.</p>
+          <p class="panel-intro">Vie JSON talteen. Tuonti esikatsellaan ja yhdistetään ilman tuplauksia.</p>
           <p class="notice" id="backupStorageNotice"></p>
           <div class="backup-actions no-print"><button class="button soft" id="exportBackup">Vie varmuuskopio</button></div>
-          <div class="field no-print"><label for="backupFile">Palauta JSON-tiedostosta</label><input type="file" id="backupFile" accept=".json,application/json"><span class="helper">Tiedosto tarkistetaan ennen palautusta. Palautus korvaa nykyiset tiedot, ei yhdistä niitä. Enintään 5 Mt.</span></div>
-          <details class="no-print"><summary>Tai palauta liittämällä JSON-teksti</summary><div class="field" style="margin-block-start:14px"><label for="importText">Varmuuskopion sisältö</label><textarea id="importText" rows="5" spellcheck="false"></textarea></div><button class="button" id="importPaste">Tarkista ja palauta</button></details>
+          <div class="field no-print"><label for="backupFile">Tuo vanhan version JSON</label><input type="file" id="backupFile" accept=".json,application/json"><span class="helper">Esikatselu ennen vahvistusta. Enintään 2 MiB; ristiriidat eivät ylikirjoita yhteisiä tietoja.</span></div>
+          <details class="no-print"><summary>Tai tuo liittämällä JSON-teksti</summary><div class="field" style="margin-block-start:14px"><label for="importText">Varmuuskopion sisältö</label><textarea id="importText" rows="5" spellcheck="false"></textarea></div><button class="button" id="importPaste">Esikatsele tuonti</button></details>
           <p class="form-error" id="backupError" role="alert" hidden></p>
-          <details><summary>Mitä tallennetaan?</summary><p>Nimet, roolit ja käyttäjätunnukset, suolatut salasanatiivisteet, pisteiden aiheet ja syyt, kirjaajat, aikaleimat, maksukuitit sekä korjausten ja poistojen historia. Selväkielisiä salasanoja ei tallenneta tai viedä. JSON ei ole salattu; heikkoja salasanoja voi yrittää arvata tiivisteistä. Säilytä varmuuskopio vain perheen käytössä. HTML-tiedosto ei sisällä käytössä syntyneitä kirjauksia tai muuttuneita salasanoja: ne siirretään varmuuskopiolla. V1/V2-palautus säilyttää tässä selaimessa jo vaihdetut salasanat. Muut V2-salasanatiivisteet palautuvat varmuuskopiosta; V1:n puuttuvat viisi perustunnusta alustetaan aloitusarvoihin. V3 palauttaa tunnukset ja tiivisteet varmuuskopiosta.</p></details>
+          <details><summary>Mitä tallennetaan?</summary><p>Yhteiseen tietokantaan tallennetaan nimet, roolit, pisteet, maksukuitit ja muutoshistoria. Salasanat ja istunnot ovat palvelimen suojatussa tallennuksessa, eivät JSON-viennissä. Varmuuskopio on henkilökohtainen: pidä se poissa GitHubista. Vanhan version V1/V2/V3-JSON tuodaan ensin esikatseluun ja sitten vahvistettuna yhdistetään yhteisiin tietoihin. Tunnisteet ja aikaleimat säilyvät, samat kirjaukset eivät kahdennu. Ristiriidat estävät tuonnin; nykyisiä tietoja ei korvata hiljaisesti. Paikallisia salasanoja ei siirretä.</p></details>
         </section>
       </section>
       </div>
@@ -396,10 +396,10 @@
     <details class="panel app-help" id="appHelp">
       <summary>Ohjeet ja tiedot</summary>
       <div class="help-body">
-        <p class="notice" id="roleNotice"><strong>Paikallinen perhekirjautuminen.</strong> Tunnukset eivät ole Microsoft 365 -tunnuksia eikä niitä lähetetä ulkoisiin palveluihin. Tämä ei ole palvelinpuolen turvallinen tunnistautuminen tai pilvipalvelu: tiedostoa tai selaintietoja muokkaamalla suojauksen voi kiertää. Tiedot eivät synkronoidu laitteiden välillä. Kuittaus vahvistaa jo maksetun rahan, ei siirrä rahaa.</p>
+        <p class="notice" id="roleNotice"><strong>Yhteinen verkkotallennus.</strong> Kaikki kirjautuneet näkevät saman Supabasen tietokannan Vercelin palvelin-API:n kautta. Palvelin varmistaa kirjautumisen ja käyttöoikeudet jokaisessa pyynnössä. Näkymä päivittyy noin 8 sekunnin välein ja kirjauksen jälkeen. Yhteyskatkossa ei tallenneta paikallista kopiota. Maksukuittaus ei siirrä rahaa.</p>
         <p class="helper" id="storageDetail"></p>
         <p class="helper">Kirjaudu etunimelläsi: Ilkka, Hanna, Elli, Aava tai Stella. Kirjainkoko ja reunavälilyönnit eivät vaikuta. Uuden henkilön tunnukseksi ehdotetaan etunimeä. Sama tunnus ei voi kuulua kahdelle henkilölle, myöskään arkistoituna.</p>
-        <p class="helper">Salasanat tallennetaan suolattuina PBKDF2-SHA256-tiivisteinä (600 000 kierrosta). Vaihda yhteinen aloitussalasana omaan salasanaan. Kirjautuminen päättyy uloskirjautumiseen tai sivun uudelleenlataukseen. Käytä sovellusta yhdessä ikkunassa kerrallaan.</p>
+        <p class="helper">Salasanat käsitellään palvelimella yksilöllisesti suolattuina scrypt-tiivisteinä. Niitä ei palauteta selaimelle. Istunto käyttää suojattua HttpOnly-evästettä ja päättyy viimeistään 12 tunnissa. Salasananvaihto mitätöi käyttäjän vanhat istunnot.</p>
         <p class="notice" id="familyModeNotice"></p>
         <div class="guide-list">
           <div class="guide"><strong>01 · Kirjaa</strong><p>± Kirjaa piste avaa lomakkeen. Valitse pisteet ja pakollinen aihe. Muu-aiheeseen ja miinuspisteisiin tarvitaan syy.</p></div>
@@ -409,7 +409,7 @@
         <p class="helper">Aiemmat palkintokirjaukset tulkitaan maksetuiksi 5 € maksuiksi. Jos vanha kirjaus ei vastaa toteutunutta maksua, vanhempi voi perua kuittauksen historiassa. Tämä ei peru oikeaa maksua.</p>
       </div>
     </details>
-    <footer class="footer"><span>Pistebörssi · perheen yhteinen arki</span><span>10 p = 5 € · Paikallinen kirjautuminen · Ei pilvisynkronointia tai rahansiirtoja</span></footer>
+    <footer class="footer"><span>Pistebörssi · perheen yhteinen arki</span><span>10 p = 5 € · Yhteinen tietokanta · Ei rahansiirtoja</span></footer>
   </div>
   <div class="feedback" id="feedback" role="status" aria-live="polite" hidden><span id="feedbackText"></span><button id="feedbackClose" aria-label="Sulje ilmoitus">✕</button></div>
   <dialog id="confirmDialog" aria-labelledby="confirmTitle" aria-describedby="confirmMessage">
@@ -438,8 +438,8 @@
       <p id="credentialsPerson"></p>
       <form id="credentialsForm" novalidate>
         <div class="field"><label for="credentialsUsername">Käyttäjätunnus</label><input id="credentialsUsername" name="account-username" type="text" inputmode="text" autocomplete="off" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="next" maxlength="40"></div>
-        <div class="field" id="credentialsPasswordField"><label for="credentialsPassword">Tilapäinen salasana (8–128 merkkiä)</label><input id="credentialsPassword" name="account-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="128"></div>
-        <p class="helper" id="credentialsHint" hidden>Henkilön nykyinen salasana säilyy. Määritä vain yksilöllinen käyttäjätunnus.</p>
+        <div class="field" id="credentialsPasswordField"><label for="credentialsPassword">Tilapäinen salasana (12–256 merkkiä)</label><input id="credentialsPassword" name="account-password" type="password" autocomplete="new-password" autocapitalize="none" autocorrect="off" spellcheck="false" enterkeyhint="done" maxlength="256"></div>
+        <p class="helper" id="credentialsHint">Luo uusi verkkotunnus ja yksilöllinen aloitussalasana. Paikallisen version salasanoja ei siirretä.</p>
         <p class="form-error" id="credentialsError" role="alert" hidden></p>
         <button type="button" class="button primary" id="credentialsSubmit">Tallenna tunnus</button>
       </form>
@@ -448,10 +448,6 @@
   <script>
   (() => {
     "use strict";
-    const KEY = "pisteborssi-v1";
-    const MAX_BYTES = 5 * 1024 * 1024;
-    const ITERATIONS = 600000;
-    const bootstrapAccounts = {"ilkka": {"credential": {"algorithm": "PBKDF2-SHA256", "iterations": 600000, "salt": "8444d0bf5bc9e2ee6f8374a97644c848", "hash": "5c6316131572a866ec3e1d8bfd565f88baf3d1b75cfbf54c00b32331113a34b9", "mustChange": true}, "username": "ilkka"}, "hanna": {"credential": {"algorithm": "PBKDF2-SHA256", "iterations": 600000, "salt": "9320ae3ab33a42d0961f8e86fccf8a98", "hash": "2e1e6341bb45886c06eb89e8b25e71f3a7200b3fb5dde9bf0f0ad1a9e75f0600", "mustChange": true}, "username": "hanna"}, "elli": {"credential": {"algorithm": "PBKDF2-SHA256", "iterations": 600000, "salt": "d9bfb566aa6e9de92e93541ae2fece96", "hash": "a3dceb032632e9d9cdb7dc5ab321a6716f1f2121dd4213934edab186fa0bc140", "mustChange": true}, "username": "elli"}, "aava": {"credential": {"algorithm": "PBKDF2-SHA256", "iterations": 600000, "salt": "9e067267e096d84bc55a2f37e79e40ad", "hash": "a669b35dd8e722df3a56e2e6b2feb3e373fe2357e656f10543111681bb8d7891", "mustChange": true}, "username": "aava"}, "stella": {"credential": {"algorithm": "PBKDF2-SHA256", "iterations": 600000, "salt": "d379e9342ccf854dcb034ae72fbddcda", "hash": "91114d89f757b7bbb81f5d5ccc9a6a481262104906825711de3a7c01e3503b50", "mustChange": true}, "username": "stella"}};
     const topics = Object.freeze({walk:"Börjen lenkki",trash:"Roskat",dishwasher:"Pesukoneen tyhjennys",laundry:"Pyykkien laitto",cooking:"Ruoan laitto",other:"Muu"});
     const $ = id => document.getElementById(id);
     const node = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; return el; };
@@ -460,277 +456,139 @@
     const fmt = new Intl.DateTimeFormat("fi-FI", {day:"numeric",month:"numeric",year:"numeric",hour:"2-digit",minute:"2-digit",second:"2-digit"});
     const dateText = value => fmt.format(new Date(value));
     const signed = n => n > 0 ? "+" + n : "−" + Math.abs(n);
-    const initialState = () => migrate({
-      app:"pisteborssi",version:1,
-      people:[
-        {id:"elli",name:"Elli Paju",role:"child",archived:false},
-        {id:"aava",name:"Aava Paju",role:"child",archived:false},
-        {id:"stella",name:"Stella Paju",role:"child",archived:false},
-        {id:"ilkka",name:"Ilkka Paju",role:"parent",archived:false},
-        {id:"hanna",name:"Hanna Hoffren",role:"parent",archived:false}
-      ], entries:[]
-    });
-    // Only validated, canonical data reaches the ledger or DOM.
-    function validateBackup(raw) {
-      const fail = message => { throw new Error(message); };
-      const obj = value => value !== null && typeof value === "object" && !Array.isArray(value);
-      const keys = (value, allowed) => { if (!obj(value) || Object.keys(value).some(key => !allowed.includes(key))) fail("Varmuuskopion rakenne ei ole tuettu."); };
-      const str = (value,max) => typeof value === "string" && value.trim().length > 0 && value.length <= max && !/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/.test(value);
-      const id = value => typeof value === "string" && /^[a-zA-Z0-9_-]{1,100}$/.test(value);
-      const timestamp = value => typeof value === "string" && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value) && Number.isFinite(Date.parse(value)) && new Date(value).toISOString() === value;
-      const validatePoints = value => {
-        if (![-2,-1,1,2].includes(value.points)) fail("Pistekirjauksen pisteiden täytyy olla +1, +2, −1 tai −2.");
-        if (!Object.hasOwn(topics,value.topic)) fail("Pistekirjaukselta puuttuu kelvollinen aihe.");
-        if (typeof value.reason !== "string" || value.reason.length > 300) fail("Pistekirjauksen syy on virheellinen.");
-        if (value.topic === "other" && !str(value.reason,300)) fail("Muu-aiheelle tarvitaan ei-tyhjä syy.");
-        if (value.topic !== "other" && value.reason !== "") fail("Vapaa syy kuuluu vain Muu-aiheeseen.");
-        if (value.points < 0 && value.topic !== "other") fail("Miinuspisteiden aiheeksi sallitaan vain Muu ja vapaa syy.");
-      };
-      keys(raw,["app","version","people","entries","exportedAt"]);
-      if (raw.app !== "pisteborssi" || ![1,2,3].includes(raw.version)) fail("Tämä ei ole tuettu Pistebörssi-varmuuskopio (versio 1, 2 tai 3).");
-      if (raw.exportedAt !== undefined && !timestamp(raw.exportedAt)) fail("Varmuuskopion aikaleima on virheellinen.");
-      if (!Array.isArray(raw.people) || raw.people.length < 1 || raw.people.length > 100) fail("Henkilöitä täytyy olla 1–100.");
-      if (!Array.isArray(raw.entries) || raw.entries.length > 10000) fail("Kirjauksia saa olla enintään 10 000.");
-      const ids = new Set();
-      const emails = new Set(), usernames = new Set();
-      const people = raw.people.map(p => {
-        keys(p,raw.version === 1 ? ["id","name","role","archived"] : raw.version === 2 ? ["id","name","role","archived","email","credential"] : ["id","name","role","archived","username","credential"]);
-        if (!id(p.id) || ids.has(p.id)) fail("Henkilön tunniste puuttuu tai esiintyy kahdesti.");
-        ids.add(p.id);
-        if (!str(p.name,80) || !["child","parent"].includes(p.role) || typeof p.archived !== "boolean") fail("Henkilön nimi tai rooli on virheellinen.");
-        const clean={id:p.id,name:p.name.trim(),role:p.role,archived:p.archived};
-        if (raw.version === 2 && (p.email !== undefined || p.credential !== undefined)) {
-          if (!validLegacyEmail(p.email) || emails.has(p.email) || p.email !== normalizeLegacyEmail(p.email)) fail("Vanhan varmuuskopion sähköpostitunnus on virheellinen tai esiintyy kahdesti.");
-          emails.add(p.email);
-          clean.email=p.email;
-        }
-        if (raw.version === 3 && p.username !== undefined) {
-          const username=normalizeUsername(p.username);
-          if (!validUsername(username)) fail("Käyttäjätunnus on virheellinen.");
-          if (usernames.has(username)) fail("Käyttäjätunnus '" + username + "' esiintyy kahdesti. Jokaisella henkilöllä täytyy olla yksilöllinen tunnus.");
-          usernames.add(username); clean.username=username;
-        }
-        if (raw.version >= 2 && p.credential !== undefined) {
-          const c=p.credential;
-          keys(c,["algorithm","iterations","salt","hash","mustChange"]);
-          if (c.algorithm !== "PBKDF2-SHA256" || c.iterations !== ITERATIONS || !/^[a-f0-9]{32}$/.test(c.salt) || !/^[a-f0-9]{64}$/.test(c.hash) || typeof c.mustChange !== "boolean") fail("Salasanatiivisteen rakenne ei ole tuettu.");
-          clean.credential={...c};
-        }
-        return clean;
-      });
-      if (!people.some(p => p.role === "parent" && !p.archived)) fail("Vähintään yhden vanhemman täytyy olla aktiivinen.");
-      if (raw.version >= 2 && !people.some(p => p.role === "parent" && !p.archived && p.credential && (raw.version === 2 || p.username))) fail("Vähintään yhdellä aktiivisella vanhemmalla täytyy olla yksilöllinen käyttäjätunnus ja salasana. Korjaa päällekkäiset tai puuttuvat tunnukset ennen palautusta.");
-      const peopleById = new Map(people.map(p => [p.id,p]));
-      const parent = value => peopleById.get(value)?.role === "parent";
-      const entryIds = new Set();
-      const entries = raw.entries.map(e => {
-        keys(e,["id","kind","childId","actorId","createdAt","points","topic","reason","amount","revisions","deletedAt","deletedBy"]);
-        if (!id(e.id) || entryIds.has(e.id)) fail("Kirjauksen tunniste puuttuu tai esiintyy kahdesti.");
-        entryIds.add(e.id);
-        const child = peopleById.get(e.childId), actor = peopleById.get(e.actorId);
-        if (!child || child.role !== "child") fail("Pisteiden vastaanottajan täytyy olla olemassa oleva lapsi.");
-        if (!actor || (actor.role === "child" && actor.id !== child.id)) fail("Lapsi voi olla vain omien pisteidensä kirjaaja.");
-        if (!timestamp(e.createdAt)) fail("Kirjauksen aikaleima on virheellinen.");
-        if (!["points","reward"].includes(e.kind)) fail("Kirjauksen tyyppi ei ole tuettu.");
-        const entry = {id:e.id,kind:e.kind,childId:e.childId,actorId:e.actorId,createdAt:e.createdAt,points:e.points};
-        if (e.kind === "points") {
-          validatePoints(e);
-          if (e.amount !== undefined) fail("Pistekirjauksella ei voi olla rahasummaa.");
-          entry.topic=e.topic; entry.reason=e.reason.trim();
-          if (e.revisions !== undefined) {
-            if (!Array.isArray(e.revisions) || e.revisions.length > 100) fail("Kirjauksen muutoshistoria on virheellinen tai liian pitkä.");
-            entry.revisions = e.revisions.map(r => {
-              keys(r,["at","by","points","topic","reason"]);
-              if (!timestamp(r.at) || !parent(r.by)) fail("Muutoshistorian muokkaajan täytyy olla vanhempi ja ajan kelvollinen.");
-              validatePoints(r);
-              return {at:r.at,by:r.by,points:r.points,topic:r.topic,reason:r.reason.trim()};
-            });
-          }
-        } else {
-          if (!parent(e.actorId) || e.points !== -10 || e.amount !== 5) fail("Palkinnon kirjaa vanhempi: sen arvon täytyy olla 5 € ja pistekulun −10.");
-          if (e.topic !== undefined || e.reason !== undefined || e.revisions !== undefined) fail("Palkinnon rakenne on virheellinen.");
-          entry.amount=5;
-        }
-        if ((e.deletedAt === undefined) !== (e.deletedBy === undefined)) fail("Poistomerkinnän tiedot ovat puutteelliset.");
-        if (e.deletedAt !== undefined) {
-          if (!timestamp(e.deletedAt) || !parent(e.deletedBy)) fail("Poistajan täytyy olla vanhempi ja poistoajan kelvollinen.");
-          entry.deletedAt=e.deletedAt; entry.deletedBy=e.deletedBy;
-        }
-        return entry;
-      });
-      return {app:"pisteborssi",version:raw.version,people,entries};
-    }
-    function normalizeLegacyEmail(value) { return typeof value === "string" ? value.trim().toLowerCase() : ""; }
-    function validLegacyEmail(value) { return typeof value === "string" && value.length <= 254 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value); }
-    function normalizeUsername(value) { return typeof value === "string" ? value.trim().normalize("NFKC").toLocaleLowerCase("fi-FI") : ""; }
-    function firstName(value) { return typeof value === "string" ? value.trim().split(/\s+/u)[0] : ""; }
-    function validUsername(value) { return typeof value === "string" && value.length <= 40 && /^[\p{L}\p{N}][\p{L}\p{M}\p{N}._'\u2019-]{0,39}$/u.test(value); }
-    function migrate(data, existing) {
-      if (data.version === 3) return data;
-      const groups=new Map();
-      const candidates=data.people.map(p => {
-        const previous=existing?.people.find(q => q.id === p.id);
-        const defaults=bootstrapAccounts[p.id];
-        const username=normalizeUsername(defaults?.username || previous?.username || firstName(p.name));
-        const credential=previous?.credential && !previous.credential.mustChange ? previous.credential : p.credential || previous?.credential || defaults?.credential;
-        const person={id:p.id,name:p.name,role:p.role,archived:p.archived,...(credential ? {credential:{...credential}} : {})};
-        const candidate={person,username,previous};
-        if (validUsername(username)) {
-          if (!groups.has(username)) groups.set(username,[]);
-          groups.get(username).push(candidate);
-        }
-        return candidate;
-      });
-      for (const [username,group] of groups) {
-        const known=group.filter(c => bootstrapAccounts[c.person.id]?.username === username);
-        const previousOwners=group.filter(c => c.previous?.username === username);
-        const owner=group.length === 1 ? group[0] : known.length === 1 ? known[0] : previousOwners.length === 1 ? previousOwners[0] : null;
-        if (owner) owner.person.username=username;
-      }
-      return validateBackup({app:"pisteborssi",version:3,people:candidates.map(c => c.person),entries:data.entries});
-    }
-    const hex = bytes => Array.from(bytes,b => b.toString(16).padStart(2,"0")).join("");
-    const bytesFromHex = value => Uint8Array.from(value.match(/../g),b => parseInt(b,16));
-    function requirePasswordSupport() {
-      if (!globalThis.crypto?.subtle || typeof crypto.getRandomValues !== "function") throw new Error("Selaimen salasanatoiminto ei ole käytettävissä tässä esikatselussa. Avaa HTML-tiedosto ajantasaisessa Safarissa tai Chromessa. Tunnuksia ei lähetetä verkkoon eikä kirjautumista ohiteta.");
-    }
-    async function passwordHash(password, salt) {
-      requirePasswordSupport();
-      try {
-        const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);
-        return hex(new Uint8Array(await crypto.subtle.deriveBits({name:"PBKDF2",salt:bytesFromHex(salt),iterations:ITERATIONS,hash:"SHA-256"},key,256)));
-      } catch (_) {
-        throw new Error("Selaimen salasanatoiminto epäonnistui. Toimintoa ei tehty. Kokeile ajantasaista Safaria tai Chromea ja avaa HTML-tiedosto esikatselun sijaan.");
-      }
-    }
-    async function passwordMatches(password,credential) {
-      const hash=await passwordHash(password,credential.salt);
-      let difference=0;
-      for (let i=0;i<hash.length;i++) difference |= hash.charCodeAt(i) ^ credential.hash.charCodeAt(i);
-      return difference === 0;
-    }
-    async function makeCredential(password,mustChange=true) {
-      if (password.length < 8 || password.length > 128) throw new Error("Uuden salasanan pituuden täytyy olla 8–128 merkkiä.");
-      requirePasswordSupport();
-      const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
-      return {algorithm:"PBKDF2-SHA256",iterations:ITERATIONS,salt,hash:await passwordHash(password,salt),mustChange};
-    }
-    let state = initialState();
-    let storageMode = "memory", storageIssue = "", otherWindow = false;
-    let persistedText=null, migrationPending=false, storedDataFound=false, startupError="";
-    try {
-      const store = window.localStorage;
-      const saved = store.getItem(KEY);
-      storedDataFound=saved !== null;
-      if (saved !== null) {
-        if (new TextEncoder().encode(saved).length > MAX_BYTES) throw new Error("Tallennettu tieto on liian suuri.");
-        const loaded=validateBackup(JSON.parse(saved));
-        state = migrate(loaded);
-        migrationPending=loaded.version !== 3;
-      }
-      store.setItem(KEY + "-probe","ok");
-      store.removeItem(KEY + "-probe");
-      storageMode = "browser";
-      persistedText=saved;
-    } catch (error) {
-      storageIssue = "Selaintallennusta ei voitu käyttää tai vanhaa tietoa ei voitu lukea. Aiemman tallennuksen päälle ei kirjoiteta. Tiedot säilyvät vain tällä avoimella sivulla.";
-      if (storedDataFound) startupError="Vanhojen tietojen avaaminen pysähtyi: " + error.message + " Alkuperäinen selaintallennus säilytettiin eikä salasanoja nollattu.";
-    }
-    let actorId = null, authEpoch=0, loginBusy=false, passwordBusy=false, personBusy=false, personUsernameEdited=false, credentialsBusy=false, credentialsId=null;
-    let historyLimit = 50, editId = null, confirmAction = null, toastTimer, changedThisSession=false;
-    const person = id => state.people.find(p => p.id === id);
-    const actor = () => { const p=person(actorId); return p && !p.archived && p.username && p.credential ? p : null; };
-    const isParent = () => actor()?.role === "parent" && !actor().archived;
-    const children = () => state.people.filter(p => p.role === "child" && !p.archived);
-    const balance = id => state.entries.reduce((sum,e) => sum + (e.childId === id && !e.deletedAt ? e.points : 0),0);
-    const paidEntries = id => state.entries.filter(e => e.childId === id && e.kind === "reward" && !e.deletedAt).sort((a,b) => a.createdAt.localeCompare(b.createdAt));
-    const paidTotal = id => paidEntries(id).reduce((sum,e) => sum + e.amount,0);
-    const activeParentRequired = () => { if (!isParent()) throw new Error("Tämä toiminto vaatii vanhemman oman kirjautumisen."); };
-    const activeUserRequired = () => { if (!actor()) throw new Error("Kirjaudu ensin omalla tunnuksellasi."); };
-    function checkSession(epoch,id) { if (authEpoch !== epoch || actorId !== id || !actor()) throw new Error("Kirjautuminen on vaihtunut. Toimintoa ei tehty."); }
-    const feedback = message => {
-      clearTimeout(toastTimer); $("feedbackText").textContent=message; $("feedback").hidden=false;
-      toastTimer=setTimeout(() => { $("feedback").hidden=true; },8000);
-    };
-    const setError = (id,message) => { $(id).textContent=message; $(id).hidden=!message; };
-    function refreshViewport() {
-      const viewport=window.visualViewport;
-      if (viewport && Math.abs(viewport.scale-1) > .02) return;
-      const height=viewport?.height || window.innerHeight, top=viewport?.offsetTop || 0;
-      const bottom=Math.max(0,window.innerHeight-height-top), style=document.documentElement.style;
+
+    let state={app:"pisteborssi",version:4,people:[],entries:[]}, revision=-1, actorId=null, currentUser=null, csrfToken=null;
+    let connected=false, serverReady=false, connectionMessage="Yhdistetään yhteiseen tietokantaan…", authEpoch=0;
+    let historyLimit=50, editId=null, credentialsId=null, confirmAction=null, toastTimer;
+    let mutationBusy=false, loginBusy=false, personBusy=false, personUsernameEdited=false, pending=null, syncing=false;
+    const person=id => state.people.find(p=>p.id===id);
+    const actor=()=>{const p=person(actorId);return currentUser && p && !p.archived ? p : null;};
+    const isParent=()=>actor()?.role==="parent";
+    const children=()=>state.people.filter(p=>p.role==="child"&&!p.archived);
+    const balance=id=>state.entries.reduce((sum,e)=>sum+(e.childId===id&&!e.deletedAt?e.points:0),0);
+    const paidEntries=id=>state.entries.filter(e=>e.childId===id&&e.kind==="reward"&&!e.deletedAt).sort((a,b)=>a.createdAt.localeCompare(b.createdAt));
+    const paidTotal=id=>paidEntries(id).reduce((sum,e)=>sum+e.amount,0);
+    const normalizeUsername=value=>typeof value==="string"?value.trim().toLowerCase():"";
+    const firstName=value=>value.trim().split(/\s+/)[0];
+    const activeParentRequired=()=>{if(!isParent())throw new Error("Toiminto on vain vanhemmalle.");};
+    const feedback=message=>{clearTimeout(toastTimer);$("feedbackText").textContent=message;$("feedback").hidden=false;toastTimer=setTimeout(()=>$("feedback").hidden=true,8000);};
+    const setError=(id,message)=>{$(id).textContent=message;$(id).hidden=!message;};
+    function refreshViewport(){
+      const v=window.visualViewport;if(v&&Math.abs(v.scale-1)>.02)return;
+      const height=v?.height||innerHeight,top=v?.offsetTop||0,style=document.documentElement.style;
       style.setProperty("--dialog-available-block",Math.max(64,Math.floor(height)-32)+"px");
       style.setProperty("--viewport-top",Math.max(0,Math.floor(top))+"px");
-      style.setProperty("--viewport-bottom",Math.floor(bottom)+"px");
-      requestAnimationFrame(() => {
-        const active=document.activeElement;
-        if (active?.closest("dialog[open]") && ["INPUT","TEXTAREA","SELECT"].includes(active.tagName)) active.scrollIntoView({block:"nearest",inline:"nearest"});
+      style.setProperty("--viewport-bottom",Math.floor(Math.max(0,innerHeight-height-top))+"px");
+      requestAnimationFrame(()=>{const el=document.activeElement;if(el?.closest("dialog[open]")&&["INPUT","TEXTAREA","SELECT"].includes(el.tagName))el.scrollIntoView({block:"nearest",inline:"nearest"});});
+    }
+    function showDialog(id){try{refreshViewport();$(id).scrollTop=0;$(id).showModal();return true;}catch{feedback("Dialogia ei voitu avata. Käytä ajantasaista selainta.");return false;}}
+    function wireForm(formId,buttonId,handler){
+      const form=$(formId);form.addEventListener("submit",handler);$(buttonId).addEventListener("click",handler);
+      form.addEventListener("keydown",event=>{if(event.key!=="Enter"||event.isComposing||!["INPUT","SELECT"].includes(event.target.tagName))return;event.preventDefault();
+        if(event.target.getAttribute("enterkeyhint")==="next"){const fields=[...form.querySelectorAll("input,select,textarea,button")].filter(el=>!el.disabled&&el.getClientRects().length>0&&el.type!=="hidden");const next=fields[fields.indexOf(event.target)+1];if(next){next.focus();return;}}
+        handler(event);
       });
     }
-    function showDialog(id) {
-      const dialog=$(id);
-      if (typeof dialog.showModal !== "function") {
-        feedback("Selaimesi ei tue tarvittavia dialogeja. Päivitä Safari tai Chrome ja avaa HTML-tiedosto selaimessa.");
-        return false;
+    function renderStorage(){
+      const warning=!connected||!serverReady||!!pending;
+      $("storageStatus").classList.toggle("memory",warning);
+      $("storageLabel").textContent=connected&&serverReady?"Yhteinen tietokanta":connected?"Käyttäjien alustus puuttuu":"Yhteys ei ole käytössä";
+      $("storageWarning").hidden=!warning;
+      $("storageWarning").textContent=pending?"Tallennuksen tulos on epäselvä. Yritä samaa muutosta uudelleen tästä painikkeesta; älä tee uutta maksukuittausta tai lataa sivua ennen tuloksen varmistusta.":connectionMessage;
+      $("retrySave").hidden=!pending;$("retrySave").disabled=mutationBusy||!currentUser;
+      $("storageDetail").textContent=connected&&serverReady?"Pisteet ja maksukuitit luetaan yhteisestä palvelusta. Päivitys noin 8 sekunnin välein. Selaimeen ei tallenneta erillistä pistetietokantaa.":connectionMessage;
+      $("backupStorageNotice").textContent="Vienti sisältää palvelimen yhteiset tiedot, ei salasanoja tai istuntotunnuksia. Tuonti on vanhemman vahvistama yhdistäminen, ei koko tietokannan korvaus.";
+      $("loginSubmit").disabled=loginBusy||!connected||!serverReady;
+      $("passwordSubmit").disabled=mutationBusy||!connected;
+      $("entrySubmit").disabled=mutationBusy||!connected;
+    }
+    function applyServer(data){
+      if(data.state&&Number.isSafeInteger(data.revision)&&data.revision<revision){connected=true;renderStorage();return;}
+      if(Object.hasOwn(data,"ready"))serverReady=data.ready;
+      if(Object.hasOwn(data,"csrfToken"))csrfToken=data.csrfToken;
+      if(Object.hasOwn(data,"user")){
+        if((currentUser?.id||null)!==(data.user?.id||null))authEpoch++;
+        currentUser=data.user;actorId=currentUser?.id||null;
       }
-      try { refreshViewport(); dialog.scrollTop=0; dialog.showModal(); return true; }
-      catch (_) { feedback("Dialogia ei voitu avata tässä esikatselussa. Avaa HTML-tiedosto ajantasaisessa Safarissa tai Chromessa."); return false; }
-    }
-    // Button and keyboard handling also work in previews without allow-forms.
-    function wireForm(formId,buttonId,handler) {
-      const form=$(formId);
-      form.addEventListener("submit",handler);
-      $(buttonId).addEventListener("click",handler);
-      form.addEventListener("keydown",event => {
-        if (event.key==="Enter" && !event.isComposing && ["INPUT","SELECT"].includes(event.target.tagName)) {
-          event.preventDefault();
-          if (event.target.getAttribute("enterkeyhint") === "next") {
-            const fields=Array.from(form.querySelectorAll("input,select,textarea,button")).filter(el => !el.disabled && el.getClientRects().length > 0 && el.type !== "hidden");
-            const next=fields[fields.indexOf(event.target)+1];
-            if (next) { next.focus(); return; }
-          }
-          handler(event);
-        }
-      });
-    }
-    function renderStorage() {
-      $("storageStatus").classList.toggle("memory",storageMode === "memory" || otherWindow);
-      $("storageLabel").textContent = otherWindow ? "Toinen ikkuna muutti tietoja" : storageMode === "browser" ? "Selaintallennus käytössä" : "Istuntotila · ota varmuuskopio";
-      $("storageDetail").textContent = otherWindow ? "Vie tämän ikkunan tiedot ja lataa sivu uudelleen ennen uusia muutoksia." : storageMode === "browser" ? "Vain tässä selaimessa. Yksityisessä tilassa tiedot voivat kadota ikkunoiden sulkemiseen. Ei laitesynkronointia." : storageIssue + " Sivun sulkeminen tai lataaminen uudelleen hävittää muutokset.";
-      $("storageWarning").hidden=storageMode === "browser" && !otherWindow;
-      $("storageWarning").textContent=otherWindow ? "Muutokset on pysäytetty. Vie varmuuskopio ja lataa sivu uudelleen." : storageMode === "memory" ? storageIssue + " Sivun sulkeminen tai lataaminen uudelleen hävittää muutokset. Vie varmuuskopio." : "";
-      $("backupStorageNotice").textContent = otherWindow ? "Tietojen muuttaminen on pysäytetty, koska toinen ikkuna muutti tallennusta. Vie tämän ikkunan tiedot ennen uudelleenlatausta." : storageMode === "browser" ? "Tallennus toimii tässä selaimessa, mutta yksityisessä tilassa tiedot voivat kadota ikkunoiden sulkemiseen. Selaintietojen tyhjentäminen voi myös poistaa tiedot. Yksityistilaa ei tunnisteta automaattisesti. Ota säännöllinen varmuuskopio." : storageIssue + " Vie varmuuskopio ennen sulkemista tai sivun lataamista uudelleen.";
-    }
-    function commit(next, message) {
-      if (otherWindow) throw new Error("Toinen ikkuna muutti tietoja. Vie varmuuskopio ja lataa sivu uudelleen.");
-      if (storageMode === "browser") {
-        let currentText;
-        try { currentText=window.localStorage.getItem(KEY); }
-        catch (_) {
-          storageMode="memory";
-          storageIssue="Selaintallennuksen lukeminen estettiin. Muutokset säilyvät nyt vain tällä avoimella sivulla.";
-          message+=" Tallennus on estetty: vie varmuuskopio ennen sulkemista.";
-        }
-        if (storageMode === "browser" && currentText !== persistedText) {
-          otherWindow=true; renderStorage();
-          throw new Error("Toinen ikkuna muutti tallennusta. Lataa sivu uudelleen ennen uusia muutoksia.");
-        }
+      if(!currentUser){state={app:"pisteborssi",version:4,people:[],entries:[]};revision=-1;}
+      else if(data.state&&Number.isSafeInteger(data.revision)&&data.revision>=revision){
+        state=data.state;revision=data.revision;
       }
-      const clean = validateBackup(next);
-      const serialized = JSON.stringify(clean);
-      if (new TextEncoder().encode(serialized).length > MAX_BYTES) throw new Error("Tiedot ylittävät 5 Mt rajan. Muutosta ei tehty.");
-      state=clean; changedThisSession=true;
-      if (storageMode === "browser") {
-        try { window.localStorage.setItem(KEY,serialized); persistedText=serialized; }
-        catch (_) {
-          storageMode="memory";
-          storageIssue="Automaattinen tallennus epäonnistui. Uusin tieto on vain tällä avoimella sivulla.";
-          message += " Tallennus epäonnistui: vie varmuuskopio ennen sulkemista.";
-        }
-      }
-      if (!actor()) clearSession(false);
-      renderAll(); feedback(message);
+      connected=true;
+      connectionMessage=serverReady?"":"Tietokanta on kytketty, mutta verkkotilit on ensin alustettava README-ohjeen mukaan.";
+      renderAll();updateTopicForm();
     }
-    const cloneState = () => JSON.parse(JSON.stringify(state));
+    async function request(op,body,write=false,key,csrfOverride){
+      const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+      try{
+        const response=await fetch("/api/pisteborssi?op="+encodeURIComponent(op),{method:write?"POST":"GET",credentials:"same-origin",cache:"no-store",signal:controller.signal,
+          headers:write?{"Content-Type":"application/json","Idempotency-Key":key,...(op!=="login"?{"X-CSRF-Token":csrfToken||csrfOverride||""}:{})}:{},
+          ...(write?{body:JSON.stringify(body)}:{})});
+        let data;try{data=await response.json();}catch{throw Object.assign(new Error("Yhteinen API puuttuu tästä julkaisusta tai ei vastaa JSON-muodossa. Käytä uuden projektin Vercel-julkaisua."),{unknown:true});}
+        if(!response.ok)throw Object.assign(new Error(data.error?.message||"Palvelin hylkäsi pyynnön."),{status:response.status,code:data.error?.code,unknown:response.status>=500});
+        return data;
+      }catch(error){
+        if(error.status)throw error;
+        throw Object.assign(new Error(error.name==="AbortError"?"Yhteisen palvelun vastaus viivästyi. Tallennuksen tulos täytyy varmistaa.":error.message||"Yhteys yhteiseen palveluun epäonnistui."),{unknown:true});
+      }finally{clearTimeout(timer);}
+    }
+    function offline(error){connected=false;connectionMessage=error.message+" Mitään ei tallenneta paikallisesti. Näkyvä pistetilanne voi olla vanhentunut.";renderAll();}
+    async function syncServer(){
+      if(syncing||mutationBusy)return;syncing=true;const epoch=authEpoch;
+      try{
+        const data=await request("session");
+        if(epoch===authEpoch)applyServer(data);
+      }catch(error){
+        if(epoch!==authEpoch)return;
+        if(error.status===401&&!pending){clearSession();connectionMessage="Istunto päättyi. Kirjaudu uudelleen.";connected=true;serverReady=true;renderStorage();}
+        else offline(error);
+      }finally{syncing=false;}
+    }
+    async function mutate(op,body){
+      if(mutationBusy)throw new Error("Tallennus on jo käynnissä.");
+      if(!actor())throw new Error("Kirjaudu ensin.");
+      const fingerprint=JSON.stringify({op,body});
+      if(pending&&pending.fingerprint!==fingerprint)throw new Error("Edellisen tallennuksen tulos on varmistettava ensin Yritä tallennusta uudelleen -painikkeella.");
+      if(!connected&&!pending)throw new Error("Ei yhteyttä yhteiseen palveluun. Kirjausta ei tehty.");
+      const intent=pending||{op,body,key:uid(),csrf:csrfToken,fingerprint,actorId};
+      if(intent.actorId!==actorId)throw new Error("Keskeneräinen tallennus kuuluu toiselle kirjautumiselle. Palaa alkuperäiseen käyttäjäistuntoon ennen uudelleenyritystä.");
+      let uncertain=!!pending;
+      mutationBusy=true;renderStorage();
+      try{
+        let data,error;
+        for(let attempt=0;attempt<2;attempt++){
+          try{data=await request(intent.op,intent.body,true,intent.key,intent.csrf);error=null;break;}
+          catch(e){error=e;if(e.unknown)uncertain=true;if(!e.unknown)break;}
+        }
+        if(error)throw error;
+        pending=null;applyServer(data);await syncAfterWrite();return data;
+      }catch(error){
+        if(error.unknown||uncertain){pending=intent;offline(error);if(error.status===401){clearSession();feedback("Kirjaudu alkuperäisellä käyttäjällä ja varmista keskeneräinen tallennus.");}}
+        else{
+          pending=null;
+          if(error.status===401){clearSession();feedback("Kirjaudu uudelleen.");}
+          if(error.code==="password_change_required"){openTab("family");$("accountPanel").scrollIntoView({block:"start"});$("currentPassword").focus();}
+        }
+        throw error;
+      }finally{mutationBusy=false;renderAll();}
+    }
+    async function syncAfterWrite(){
+      if(!currentUser)return;
+      try{applyServer(await request("session"));}catch(error){offline(error);}
+    }
+    $("retrySave").addEventListener("click",async()=>{
+      if(!pending||mutationBusy)return;const intent=pending;
+      try{await mutate(intent.op,intent.body);feedback("Tallennuksen tulos varmistettu yhteisestä tietokannasta.");}
+      catch(error){feedback(error.message);}
+    });
+    function clearSession(){
+      authEpoch++;actorId=null;currentUser=null;csrfToken=null;state={app:"pisteborssi",version:4,people:[],entries:[]};revision=-1;
+      confirmAction=null;editId=null;credentialsId=null;personUsernameEdited=false;
+      for(const dialog of document.querySelectorAll("dialog[open]"))dialog.close();
+      for(const id of ["loginForm","entryForm","personForm","passwordForm","credentialsForm","editForm"])$(id).reset();
+      $("backupText").value="";$("importText").value="";$("backupFile").value="";
+      historyLimit=50;openTab("scores");renderAll();
+    }
     function fillSelect(el, options, preferred) {
       el.replaceChildren();
       for (const option of options) { const o=node("option","",option.label); o.value=option.value; el.append(o); }
@@ -738,8 +596,8 @@
     }
     function renderActors() {
       $("sessionName").textContent=actor().name + " · " + (isParent() ? "vanhempi" : "lapsi");
-      $("initialPasswordNotice").hidden=!actor().credential.mustChange;
-      $("usernameNotice").hidden=!state.people.some(p => !p.username || !p.credential);
+      $("initialPasswordNotice").hidden=!currentUser.mustChange;
+      $("usernameNotice").hidden=!state.people.some(p => !p.username);
       const old = $("entryChild").value;
       const options = isParent() ? children() : children().filter(p => p.id === actorId);
       fillSelect($("entryChild"),options.map(p => ({value:p.id,label:p.name})),old);
@@ -748,8 +606,8 @@
       $("entryEmpty").hidden=options.length > 0;
       $("entryIntro").textContent=isParent() ? "Valitse lapsi, pisteet ja aihe." : "Omat pisteet · aihe vaaditaan.";
       $("actorHint").textContent="Kirjaaja: " + actor().name;
-      $("familyModeNotice").textContent=isParent() ? "Kirjautunut vanhempi: voit kuitata jo maksetun rahan, korjata historiaa, hallita henkilöitä ja palauttaa varmuuskopion. Suojaus on vain paikallinen, ei palvelinpuolen turvaraja." : "Kirjautunut lapsi: voit kirjata vain omat pisteesi ja vaihtaa oman salasanasi. Maksukuitit, historian korjaukset, henkilöiden hallinta ja varmuuskopiot vaativat vanhemman kirjautumisen.";
-      for (const id of ["personName","personUsername","personPassword","personRole","personSubmit","exportBackup","backupFile","importText","importPaste"]) $(id).disabled=!isParent() || (id === "personSubmit" && personBusy);
+      $("familyModeNotice").textContent=isParent() ? "Vanhempi: maksukuitit, korjaukset ja perheen hallinta. Palvelin tarkistaa oikeudet." : "Lapsi: vain omat pistekirjaukset ja oma salasananvaihto. Kaikki yhteiset kirjaukset näkyvät.";
+      for (const id of ["personName","personUsername","personPassword","personRole","personSubmit","exportBackup","backupFile","importText","importPaste"]) $(id).disabled=!isParent() || !connected || mutationBusy;
       $("deletedFilter").hidden=!isParent();
       if (!isParent()) $("showDeleted").checked=false;
     }
@@ -898,17 +756,17 @@
       for (const p of state.people) {
         const li=node("li","people-row" + (p.archived ? " archived" : ""));
         li.append(node("span","avatar",p.name.charAt(0).toUpperCase()));
-        const info=node("div","people-info"); info.append(node("strong","",p.name),node("small","",(p.role === "child" ? "Lapsi · " + balance(p.id) + " maksamatonta p" : "Vanhempi · ei pistesaldoa") + (p.archived ? " · arkistoitu" : "")),node("p","helper",p.username ? "Tunnus: " + p.username + (p.credential ? "" : " · salasana puuttuu") : "Käyttäjätunnus puuttuu · vanhempi määrittää")); li.append(info);
+        const info=node("div","people-info"); info.append(node("strong","",p.name),node("small","",(p.role === "child" ? "Lapsi · " + balance(p.id) + " maksamatonta p" : "Vanhempi · ei pistesaldoa") + (p.archived ? " · arkistoitu" : "")),node("p","helper",p.username ? "Tunnus: " + p.username + (p.username ? "" : " · salasana puuttuu") : "Verkkotunnus puuttuu · vanhempi luo")); li.append(info);
         if (isParent()) {
           const b=node("button","button compact",p.archived ? "Palauta" : "Arkistoi");
           b.setAttribute("aria-label",(p.archived ? "Palauta henkilö: " : "Arkistoi henkilö: ") + p.name);
-          b.disabled=!p.archived && p.role === "parent" && !!p.credential && !!p.username && state.people.filter(q => q.role==="parent" && !q.archived && q.credential && q.username).length === 1;
+          b.disabled=!p.archived && p.role === "parent" && !!p.username && !!p.username && state.people.filter(q => q.role==="parent" && !q.archived && q.username && q.username).length === 1;
           if (b.disabled) b.title="Viimeistä aktiivista vanhempaa ei voi arkistoida.";
           b.addEventListener("click",() => askArchive(p.id)); li.append(b);
-          if (!p.credential || !p.username) {
+          if (!p.username) {
             const setup=node("button","button compact soft","Määritä tunnus");
             setup.setAttribute("aria-label","Määritä tunnus: " + p.name);
-            setup.addEventListener("click",() => openCredentials(p.id)); li.append(setup);
+            setup.disabled=p.archived; if (p.archived) setup.title="Palauta henkilö ensin."; setup.addEventListener("click",() => openCredentials(p.id)); li.append(setup);
           }
         }
         list.append(li);
@@ -923,7 +781,7 @@
       if (loggedIn) { renderActors(); renderCards(); renderHistory(); renderPeople(); }
       else {
         for (const id of ["scoreCards","recentList","historyList","peopleList","entryChild"]) $(id).replaceChildren();
-        $("sessionName").textContent=""; $("actorHint").textContent=""; $("familyModeNotice").textContent="";
+        $("sessionName").textContent=""; $("actorHint").textContent=""; $("familyModeNotice").textContent=isParent() ? "Vanhempi: maksukuitit, korjaukset ja perheen hallinta. Palvelin tarkistaa oikeudet." : "Lapsi: vain omat pistekirjaukset ja oma salasananvaihto. Kaikki yhteiset kirjaukset näkyvät.";
       }
       renderStorage();
     }
@@ -942,294 +800,148 @@
       if (points < 0 && topic !== "other") throw new Error("Miinuspisteisiin tarvitaan Muu-aihe ja vapaa syy.");
       if (topic === "other" && (!reason.trim() || reason.length > 300)) throw new Error("Kirjoita ei-tyhjä syy tai tehty työ (enintään 300 merkkiä).");
     }
-    wireForm("entryForm","entrySubmit",event => {
-      event.preventDefault(); setError("entryError","");
-      try {
-        const child=person($("entryChild").value);
-        if (!child || child.archived || child.role !== "child") throw new Error("Valitse aktiivinen lapsi.");
-        if (!actor() || actor().archived || (!isParent() && child.id !== actorId)) throw new Error("Lapsen tilassa voi kirjata vain omia pisteitä.");
-        const points=Number($("entryForm").querySelector('input[name="points"]:checked')?.value);
-        const topic=$("entryForm").querySelector('input[name="topic"]:checked')?.value;
-        const reason=topic === "other" ? $("entryReason").value.trim() : "";
-        checkPointInput(points,topic,reason);
-        const next=cloneState();
-        next.entries.push({id:uid(),kind:"points",childId:child.id,actorId,createdAt:now(),points,topic,reason});
-        commit(next,child.name + ": " + signed(points) + " p kirjattu.");
-        $("entryForm").reset(); $("entryChild").value=child.id; updateTopicForm();
-      } catch (error) { setError("entryError",error.message); if ($("reasonField").hidden) $("topicField").querySelector('input:not(:disabled)').focus(); else $("entryReason").focus(); }
+
+    wireForm("loginForm","loginSubmit",async event=>{
+      event.preventDefault();if(loginBusy||currentUser)return;loginBusy=true;renderStorage();setError("loginError","");
+      const body={username:normalizeUsername($("loginUsername").value),password:$("loginPassword").value},key=uid();$("loginPassword").value="";
+      try{
+        let data;
+        try{data=await request("login",body,true,key);}catch(error){if(!error.unknown)throw error;data=await request("login",body,true,key);}
+        applyServer(data);$("loginForm").reset();openTab("scores",true);
+        if(currentUser.mustChange){openTab("family");$("accountPanel").scrollIntoView({block:"start"});$("currentPassword").focus();}
+      }catch(error){setError("loginError",error.message);if(error.unknown)offline(error);}
+      finally{body.password="";loginBusy=false;renderStorage();}
     });
-    for (const radio of document.querySelectorAll('input[name="points"], input[name="topic"]')) radio.addEventListener("change",() => { setError("entryError",""); updateTopicForm(); });
-    function clearSession(render=true) {
-      actorId=null; authEpoch++; confirmAction=null; editId=null; credentialsId=null; personUsernameEdited=false;
-      for (const dialog of document.querySelectorAll("dialog[open]")) dialog.close();
-      for (const id of ["loginForm","entryForm","personForm","passwordForm","credentialsForm","editForm"]) $(id).reset();
-      for (const id of ["backupText","importText","backupFile"]) $(id).value="";
-      for (const id of ["loginError","entryError","personError","passwordError","credentialsError","editError","backupError"]) setError(id,"");
-      $("historyChild").value=""; $("historyKind").value=""; $("showDeleted").checked=false; historyLimit=50;
-      openTab("scores"); updateTopicForm();
-      if (render) { renderAll(); $("loginUsername").focus(); }
-    }
-    wireForm("loginForm","loginSubmit",async event => {
-      event.preventDefault();
-      if (loginBusy || actor()) return;
-      setError("loginError",""); loginBusy=true; $("loginSubmit").disabled=true;
-      const epoch=authEpoch, username=normalizeUsername($("loginUsername").value), password=$("loginPassword").value;
-      $("loginPassword").value="";
-      try {
-        if (startupError) throw new Error(startupError);
-        const p=state.people.find(p => p.username === username && !p.archived && p.credential);
-        const credential=p?.credential || bootstrapAccounts.ilkka.credential;
-        const matches=await passwordMatches(password,credential);
-        if (epoch !== authEpoch) return;
-        if (!p || !matches || !password || !validUsername(username)) throw new Error("Käyttäjätunnus tai salasana on väärä, tai tunnus on arkistoitu.");
-        actorId=p.id; authEpoch++; $("loginForm").reset(); renderAll(); updateTopicForm(); openTab("scores",true);
-      } catch (error) { if (epoch === authEpoch) { setError("loginError",error.message); $("loginPassword").focus(); } }
-      finally { loginBusy=false; $("loginSubmit").disabled=false; }
+    $("logout").addEventListener("click",async()=>{
+      if(!actor()||mutationBusy)return;
+      try{await mutate("logout",{});pending=null;clearSession();feedback("Kirjauduit ulos.");}
+      catch(error){feedback(error.message);}
     });
-    $("logout").addEventListener("click",() => { clearSession(); feedback("Kirjauduit ulos. Tiedot säilyivät tässä selaimessa."); });
-    $("accountOpen").addEventListener("click",() => {
-      if (!actor()) return;
-      openTab("family"); $("accountPanel").scrollIntoView({block:"center"}); $("currentPassword").focus();
-    });
-    wireForm("passwordForm","passwordSubmit",async event => {
-      event.preventDefault(); if (passwordBusy) return; setError("passwordError","");
-      passwordBusy=true; $("passwordSubmit").disabled=true;
-      const epoch=authEpoch, id=actorId, current=$("currentPassword").value, password=$("newPassword").value, repeated=$("repeatPassword").value;
+    $("accountOpen").addEventListener("click",()=>{if(!actor())return;openTab("family");$("accountPanel").scrollIntoView({block:"start"});$("currentPassword").focus();});
+    wireForm("passwordForm","passwordSubmit",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("passwordError","");
+      const current=$("currentPassword").value,password=$("newPassword").value,repeated=$("repeatPassword").value;
       $("passwordForm").reset();
-      try {
-        activeUserRequired(); const credential={...actor().credential};
-        if (!password || password !== repeated) throw new Error("Uudet salasanat eivät täsmää.");
-        if (password === current) throw new Error("Valitse nykyisestä poikkeava uusi salasana.");
-        if (!await passwordMatches(current,credential)) throw new Error("Nykyinen salasana on väärä.");
-        checkSession(epoch,id);
-        const replacement=await makeCredential(password,false);
-        checkSession(epoch,id);
-        if (actor().credential.hash !== credential.hash) throw new Error("Salasana muuttui toiminnon aikana. Yritä uudelleen.");
-        const next=cloneState(); next.people.find(p => p.id === id).credential=replacement;
-        commit(next,"Oma salasana vaihdettu. Päivitä myös varmuuskopiosi."); authEpoch++;
-      } catch (error) { if (epoch === authEpoch && actorId === id) setError("passwordError",error.message); }
-      finally { passwordBusy=false; $("passwordSubmit").disabled=false; }
+      try{
+        if(password!==repeated)throw new Error("Uudet salasanat eivät täsmää.");
+        if(password===current)throw new Error("Valitse nykyisestä poikkeava salasana.");
+        await mutate("password",{currentPassword:current,newPassword:password});
+        feedback("Oma salasana vaihdettu. Vanhojen istuntojen käyttö päättyi.");
+      }catch(error){setError("passwordError",error.message);}
     });
-    function availableUsername(username,exceptId) {
-      if (!validUsername(username)) throw new Error("Kirjoita käyttäjätunnus (1–40 merkkiä; kirjaimia, numeroita tai nimiin sopivia välimerkkejä, ei välilyöntejä).");
-      if (state.people.some(p => p.id !== exceptId && p.username === username)) throw new Error("Käyttäjätunnus '" + username + "' on jo käytössä. Valitse yksilöllinen tunnus; myös arkistoitu tunnus varataan omistajalleen.");
-    }
-    function openCredentials(id) {
-      const target=person(id);
-      if (!isParent() || !target || (target.credential && target.username)) return;
-      credentialsId=id; $("credentialsPerson").textContent=target.name;
-      $("credentialsForm").reset(); $("credentialsUsername").value=target.username || firstName(target.name);
-      $("credentialsPasswordField").hidden=!!target.credential; $("credentialsPassword").disabled=!!target.credential;
-      $("credentialsHint").hidden=!target.credential;
-      setError("credentialsError",""); if (!showDialog("credentialsDialog")) credentialsId=null;
-    }
-    $("credentialsDialog").addEventListener("close",() => { credentialsId=null; $("credentialsForm").reset(); });
-    wireForm("credentialsForm","credentialsSubmit",async event => {
-      event.preventDefault(); if (credentialsBusy) return;
-      credentialsBusy=true; $("credentialsSubmit").disabled=true; setError("credentialsError","");
-      const epoch=authEpoch, id=actorId, targetId=credentialsId, username=normalizeUsername($("credentialsUsername").value), password=$("credentialsPassword").value;
-      $("credentialsPassword").value="";
-      try {
-        activeParentRequired(); availableUsername(username,targetId);
-        const initialTarget=person(targetId);
-        if (!initialTarget) throw new Error("Henkilöä ei löydy.");
-        const credential=initialTarget.credential ? {...initialTarget.credential} : await makeCredential(password);
-        checkSession(epoch,id); activeParentRequired(); availableUsername(username,targetId);
-        if (!$("credentialsDialog").open || credentialsId !== targetId) throw new Error("Tunnuksen määritys peruttiin.");
-        const next=cloneState(), target=next.people.find(p => p.id === targetId);
-        if (!target || (target.credential && target.username)) throw new Error("Tunnusta ei voi määrittää.");
-        target.username=username; target.credential=credential;
-        commit(next,target.name + ": oma kirjautumistunnus määritetty."); $("credentialsDialog").close();
-      } catch (error) { if (authEpoch === epoch && actorId === id) setError("credentialsError",error.message); }
-      finally { credentialsBusy=false; $("credentialsSubmit").disabled=false; }
+    wireForm("entryForm","entrySubmit",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("entryError","");
+      try{
+        const childId=$("entryChild").value,points=Number($("entryForm").querySelector('input[name="points"]:checked')?.value);
+        const topic=$("entryForm").querySelector('input[name="topic"]:checked')?.value,reason=topic==="other"?$("entryReason").value.trim():"";
+        if(!actor()||(!isParent()&&childId!==actorId))throw new Error("Lapsi kirjaa vain omia pisteitä.");
+        checkPointInput(points,topic,reason);
+        await mutate("points",{childId,points,topic,reason});
+        $("entryForm").reset();$("entryChild").value=childId;updateTopicForm();feedback("Pisteet tallennettu yhteiseen tietokantaan.");
+      }catch(error){setError("entryError",error.message);}
     });
-    const tabs=Array.from(document.querySelectorAll('[role="tab"]'));
-    for (const tab of tabs) {
-      tab.addEventListener("click",() => openTab(tab.id.replace("tab-","")));
-      tab.addEventListener("keydown",event => {
-        let index=tabs.indexOf(tab);
-        if (event.key==="ArrowRight") index=(index+1)%tabs.length;
-        else if (event.key==="ArrowLeft") index=(index+tabs.length-1)%tabs.length;
-        else if (event.key==="Home") index=0;
-        else if (event.key==="End") index=tabs.length-1;
-        else return;
-        event.preventDefault(); openTab(tabs[index].id.replace("tab-",""),true);
-      });
+    for(const radio of document.querySelectorAll('input[name="points"], input[name="topic"]'))radio.addEventListener("change",()=>{setError("entryError","");updateTopicForm();});
+    const tabs=[...document.querySelectorAll('[role="tab"]')];
+    for(const tab of tabs){
+      tab.addEventListener("click",()=>openTab(tab.id.replace("tab-","")));
+      tab.addEventListener("keydown",event=>{let n=tabs.indexOf(tab);if(event.key==="ArrowRight")n=(n+1)%tabs.length;else if(event.key==="ArrowLeft")n=(n+tabs.length-1)%tabs.length;else if(event.key==="Home")n=0;else if(event.key==="End")n=tabs.length-1;else return;event.preventDefault();openTab(tabs[n].id.replace("tab-",""),true);});
     }
-    $("allHistory").addEventListener("click",() => openTab("history",true));
-    for (const id of ["historyChild","historyKind","showDeleted"]) $(id).addEventListener("change",() => { historyLimit=50; renderHistory(); });
-    $("moreHistory").addEventListener("click",() => { historyLimit+=50; renderHistory(); });
-    function confirm(title,message,label,action) {
-      if ($("confirmDialog").open || !actor()) return;
-      confirmAction=action; $("confirmTitle").textContent=title; $("confirmMessage").textContent=message; $("confirmYes").textContent=label; $("confirmYes").disabled=false; if (!showDialog("confirmDialog")) confirmAction=null;
+    $("allHistory").addEventListener("click",()=>openTab("history",true));
+    for(const id of ["historyChild","historyKind","showDeleted"])$(id).addEventListener("change",()=>{historyLimit=50;renderHistory();});
+    $("moreHistory").addEventListener("click",()=>{historyLimit+=50;renderHistory();});
+    function confirm(title,message,label,action){
+      if($("confirmDialog").open||!actor())return;
+      confirmAction=action;$("confirmTitle").textContent=title;$("confirmMessage").textContent=message;$("confirmYes").textContent=label;$("confirmYes").disabled=false;
+      if(!showDialog("confirmDialog"))confirmAction=null;
     }
-    $("confirmYes").addEventListener("click",() => {
-      if (!confirmAction || $("confirmYes").disabled) return;
-      $("confirmYes").disabled=true;
-      const action=confirmAction; confirmAction=null;
-      try { action(); } catch (error) { feedback(error.message); }
+    $("confirmYes").addEventListener("click",async()=>{
+      if(!confirmAction||$("confirmYes").disabled)return;
+      $("confirmYes").disabled=true;const action=confirmAction;confirmAction=null;
+      try{await action();}catch(error){feedback(error.message);}
       $("confirmDialog").close();
     });
-    $("confirmDialog").addEventListener("close",() => { confirmAction=null; });
-    for (const b of document.querySelectorAll("[data-close]")) b.addEventListener("click",() => $(b.dataset.close).close());
-    function askReward(id) {
-      if (!isParent() || $("confirmDialog").open) return;
-      const child=person(id);
-      if (!child || child.archived || child.role !== "child") return;
-      if (balance(id)<10) { feedback("Kuittaukseen tarvitaan vähintään 10 maksamatonta pistettä."); return; }
-      const expectedActor=actorId, epoch=authEpoch;
-      confirm("Onko 5 € jo maksettu?",child.name + ": vahvistat jo suoritetun 5 € maksun. Maksamattomat pisteet vähenevät: " + balance(id) + " p → " + (balance(id)-10) + " p.\nKoko historian maksettu rahakertymä kasvaa: " + paidTotal(id) + " € → " + (paidTotal(id)+5) + " €.\nKuittaa vasta maksamisen jälkeen. Sovellus ei siirrä rahaa.","Kuittaa maksettu 5 €",() => {
-        checkSession(epoch,expectedActor);
-        activeParentRequired();
-        if (person(id)?.archived || person(id)?.role !== "child" || balance(id)<10) throw new Error("Palkintoon tarvitaan 10 käytettävissä olevaa pistettä.");
-        const next=cloneState(); next.entries.push({id:uid(),kind:"reward",childId:id,actorId,createdAt:now(),points:-10,amount:5});
-        commit(next,"Maksettu 5 € kuitattu: maksamattomista pisteistä −10 p, rahahistoriaan +5 €. Ei rahansiirtoa.");
-      });
+    $("confirmDialog").addEventListener("close",()=>{confirmAction=null;});
+    for(const b of document.querySelectorAll("[data-close]"))b.addEventListener("click",()=>$(b.dataset.close).close());
+    function askReward(id){
+      if(!isParent()||balance(id)<10)return;
+      confirm("Onko 5 € jo maksettu?",person(id).name+": maksamattomista pisteistä −10 p, rahakertymään +5 €.\nKuittaa vasta maksamisen jälkeen. Palvelin tarkistaa ajantasaisen saldon; sovellus ei siirrä rahaa.","Kuittaa maksettu 5 €",async()=>{activeParentRequired();await mutate("reward",{childId:id});feedback("Maksettu 5 € kuitattu yhteiseen tietokantaan.");});
     }
-    function askDelete(id) {
-      if (!isParent()) return;
-      const entry=state.entries.find(e => e.id===id); if (!entry || entry.deletedAt) return;
-      const reward=entry.kind==="reward";
-      confirm(reward ? "Peru virheellinen maksukuittaus?" : "Poista pistekirjaus?",person(entry.childId).name + " · " + entryLabel(entry) + ".\n" + (reward ? "Maksamattomiin pisteisiin palautuu 10 p ja rahakertymästä poistuu 5 €. Peru vain virheellinen kuittaus. Tämä ei peru tai palauta oikeaa maksua." : "Kirjauksen pisteet poistuvat saldosta. Saldo voi muuttua negatiiviseksi myös maksun kuittaamisen jälkeen.") + "\nPoistotieto säilyy historiassa.",reward ? "Peru kuittaus" : "Poista kirjaus",() => {
-        activeParentRequired();
-        const next=cloneState(), target=next.entries.find(e => e.id===id);
-        if (!target || target.deletedAt) throw new Error("Kirjaus on jo poistettu.");
-        target.deletedAt=now(); target.deletedBy=actorId;
-        commit(next,reward ? "Maksukuittaus peruttu. Saldoon +10 p, rahakertymästä −5 €. Oikeaa maksua ei peruttu." : "Pistekirjaus poistettu. Saldo päivitettiin.");
-      });
+    function askDelete(id){
+      if(!isParent())return;const e=state.entries.find(e=>e.id===id&&!e.deletedAt);if(!e)return;
+      confirm(e.kind==="reward"?"Peru virheellinen maksukuittaus?":"Poista pistekirjaus?",e.kind==="reward"?"Saldoon palautuu 10 p ja rahakertymästä poistuu 5 €. Oikeaa maksua ei peruta.":"Kirjauksen pisteet poistuvat saldosta. Poistotieto säilyy historiassa.","Vahvista",async()=>{activeParentRequired();await mutate("delete",{id});feedback("Kirjaus päivitetty yhteiseen tietokantaan.");});
     }
-    function updateEditForm() {
+    function updateEditForm(){
       const minus=Number($("editPoints").value)<0;
-      for (const option of $("editTopic").options) option.disabled=minus && option.value!=="other";
-      if (minus) $("editTopic").value="other";
-      $("editReasonField").hidden=$("editTopic").value!=="other";
-      $("editReason").required=$("editTopic").value==="other";
+      for(const option of $("editTopic").options)option.disabled=minus&&option.value!=="other";
+      if(minus)$("editTopic").value="other";$("editReasonField").hidden=$("editTopic").value!=="other";
     }
-    function openEdit(id) {
-      if (!isParent()) return;
-      const e=state.entries.find(e => e.id===id); if (!e || e.kind!=="points" || e.deletedAt) return;
-      editId=id; $("editPoints").value=String(e.points); $("editTopic").value=e.topic; $("editReason").value=e.reason;
-      $("editDescription").textContent=person(e.childId).name + " · " + dateText(e.createdAt) + " · Kirjaaja: " + person(e.actorId).name;
-      setError("editError",""); updateEditForm(); if (!showDialog("editDialog")) editId=null;
+    function openEdit(id){
+      if(!isParent())return;const e=state.entries.find(e=>e.id===id&&e.kind==="points"&&!e.deletedAt);if(!e)return;
+      editId=id;$("editPoints").value=String(e.points);$("editTopic").value=e.topic;$("editReason").value=e.reason;
+      $("editDescription").textContent=person(e.childId).name+" · "+dateText(e.createdAt);setError("editError","");updateEditForm();showDialog("editDialog");
     }
-    $("editPoints").addEventListener("change",updateEditForm); $("editTopic").addEventListener("change",updateEditForm);
-    $("editDialog").addEventListener("close",() => { editId=null; });
-    wireForm("editForm","editSave",event => {
-      event.preventDefault(); setError("editError","");
-      try {
-        activeParentRequired();
-        const next=cloneState(), e=next.entries.find(e => e.id===editId);
-        if (!e || e.kind!=="points" || e.deletedAt) throw new Error("Kirjausta ei voi muokata.");
-        const points=Number($("editPoints").value), topic=$("editTopic").value, reason=topic==="other" ? $("editReason").value.trim() : "";
-        checkPointInput(points,topic,reason);
-        if (e.points===points && e.topic===topic && e.reason===reason) { $("editDialog").close(); feedback("Kirjaus säilyi ennallaan."); return; }
-        e.revisions=e.revisions || [];
-        if (e.revisions.length>=100) throw new Error("Yhden kirjauksen muutosraja (100) on täynnä.");
-        e.revisions.push({at:now(),by:actorId,points:e.points,topic:e.topic,reason:e.reason});
-        e.points=points; e.topic=topic; e.reason=reason;
-        commit(next,"Kirjaus korjattu. Saldo ja muutoshistoria päivitettiin."); $("editDialog").close();
-      } catch (error) { setError("editError",error.message); }
+    $("editPoints").addEventListener("change",updateEditForm);$("editTopic").addEventListener("change",updateEditForm);
+    $("editDialog").addEventListener("close",()=>{editId=null;});
+    wireForm("editForm","editSave",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("editError","");
+      try{activeParentRequired();const points=Number($("editPoints").value),topic=$("editTopic").value,reason=topic==="other"?$("editReason").value.trim():"";checkPointInput(points,topic,reason);await mutate("edit",{id:editId,points,topic,reason});$("editDialog").close();feedback("Korjaus ja muutoshistoria tallennettu.");}catch(error){setError("editError",error.message);}
     });
-    $("personForm").addEventListener("reset",() => { personUsernameEdited=false; });
-    $("personName").addEventListener("input",() => { if (!personUsernameEdited || !$("personUsername").value.trim()) { personUsernameEdited=false; $("personUsername").value=firstName($("personName").value); } });
-    $("personUsername").addEventListener("input",() => { personUsernameEdited=!!$("personUsername").value.trim(); });
-    wireForm("personForm","personSubmit",async event => {
-      event.preventDefault(); if (personBusy) return;
-      setError("personError",""); personBusy=true; $("personSubmit").disabled=true;
-      const epoch=authEpoch, id=actorId, username=normalizeUsername($("personUsername").value || firstName($("personName").value)), password=$("personPassword").value;
-      $("personPassword").value="";
-      try {
-        activeParentRequired();
-        const name=$("personName").value.trim(), role=$("personRole").value;
-        if (!name || name.length>80) throw new Error("Kirjoita nimi (1–80 merkkiä).");
-        if (!["child","parent"].includes(role)) throw new Error("Valitse lapsen tai vanhemman rooli.");
-        if (state.people.some(p => p.name.toLocaleLowerCase("fi")===name.toLocaleLowerCase("fi"))) throw new Error("Tämä nimi on jo perheessä. Palauta arkistoitu henkilö tai käytä erottuvaa nimeä.");
-        availableUsername(username);
-        const credential=await makeCredential(password);
-        checkSession(epoch,id); activeParentRequired(); availableUsername(username);
-        if (state.people.some(p => p.name.toLocaleLowerCase("fi")===name.toLocaleLowerCase("fi"))) throw new Error("Tämä nimi lisättiin jo perheeseen.");
-        const next=cloneState(); next.people.push({id:uid(),name,role,archived:false,username,credential});
-        commit(next,name + " lisätty perheeseen."); $("personForm").reset(); personUsernameEdited=false;
-      } catch (error) { if (authEpoch === epoch && actorId === id) setError("personError",error.message); }
-      finally { personBusy=false; renderAll(); }
+    $("personForm").addEventListener("reset",()=>{personUsernameEdited=false;});
+    $("personName").addEventListener("input",()=>{if(!personUsernameEdited||!$("personUsername").value.trim())$("personUsername").value=firstName($("personName").value);});
+    $("personUsername").addEventListener("input",()=>{personUsernameEdited=!!$("personUsername").value.trim();});
+    wireForm("personForm","personSubmit",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("personError","");
+      try{activeParentRequired();await mutate("person",{name:$("personName").value.trim(),username:normalizeUsername($("personUsername").value||firstName($("personName").value)),role:$("personRole").value,password:$("personPassword").value});$("personForm").reset();feedback("Verkkotili lisätty. Uusi käyttäjä vaihtaa aloitussalasanan.");}catch(error){setError("personError",error.message);}finally{$("personPassword").value="";}
     });
-    function askArchive(id) {
-      if (!isParent()) return;
-      const p=person(id); if (!p) return;
-      confirm(p.archived ? "Palauta henkilö?" : "Arkistoi henkilö?",p.name + (p.archived ? " palaa käyttövalintoihin. Aiempi historia ja saldo säilyvät." : " poistuu käyttövalinnoista. Historia ja saldo säilyvät, ja henkilön voi palauttaa myöhemmin."),p.archived ? "Palauta henkilö" : "Arkistoi",() => {
-        activeParentRequired(); const next=cloneState(), target=next.people.find(p => p.id===id);
-        if (!target) throw new Error("Henkilöä ei löydy.");
-        if (!target.archived && target.role==="parent" && target.credential && target.username && next.people.filter(p => p.role==="parent" && !p.archived && p.credential && p.username).length<=1) throw new Error("Viimeistä kirjautumistunnuksellista aktiivista vanhempaa ei voi arkistoida.");
-        target.archived=!target.archived; commit(next,target.name + (target.archived ? " arkistoitu. Historia säilytettiin." : " palautettu."));
-      });
+    function openCredentials(id){
+      if(!isParent()||person(id)?.username)return;
+      credentialsId=id;$("credentialsPerson").textContent=person(id).name;$("credentialsForm").reset();$("credentialsUsername").value=firstName(person(id).name);
+      $("credentialsPasswordField").hidden=false;$("credentialsPassword").disabled=false;$("credentialsHint").hidden=false;setError("credentialsError","");showDialog("credentialsDialog");
     }
-    $("exportBackup").addEventListener("click",() => {
-      if (!isParent()) return;
-      $("backupText").value=JSON.stringify({...state,exportedAt:now()},null,2); $("copyHint").textContent="Varmuuskopio sisältää koko perheen tiedot."; showDialog("backupDialog");
+    $("credentialsDialog").addEventListener("close",()=>{credentialsId=null;$("credentialsForm").reset();});
+    wireForm("credentialsForm","credentialsSubmit",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("credentialsError","");
+      try{activeParentRequired();await mutate("credentials",{id:credentialsId,username:normalizeUsername($("credentialsUsername").value),password:$("credentialsPassword").value});$("credentialsDialog").close();feedback("Uusi verkkotunnus luotu; vanhoja tilejä ei muutettu.");}catch(error){setError("credentialsError",error.message);}finally{$("credentialsPassword").value="";}
     });
-    $("downloadBackup").addEventListener("click",() => {
-      try {
-        activeParentRequired();
-        const blob=new Blob([$("backupText").value],{type:"application/json"});
-        const url=URL.createObjectURL(blob), a=node("a","");
-        a.href=url; a.download="pisteborssi-varmuuskopio-" + new Date().toISOString().slice(0,10) + ".json";
-        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url),30000);
-        $("copyHint").textContent="Latausta pyydettiin. Tarkista, että tiedosto todella tallentui. Jos esikatselu esti latauksen, kopioi JSON-teksti.";
-      } catch (_) { $("copyHint").textContent="Lataus ei onnistunut. Kopioi JSON-teksti talteen."; }
+    function askArchive(id){
+      if(!isParent())return;const p=person(id);if(!p)return;
+      confirm(p.archived?"Palauta henkilö?":"Arkistoi henkilö?",p.name+": historia ja maksut säilyvät. Arkistointi päättää käyttäjän istunnot.",p.archived?"Palauta":"Arkistoi",async()=>{activeParentRequired();await mutate("archive",{id});feedback("Henkilön tila tallennettu yhteisesti.");});
+    }
+    $("exportBackup").addEventListener("click",async()=>{
+      if(!isParent())return;
+      try{const data=await request("backup");$("backupText").value=JSON.stringify({...data.backup,exportedAt:now()},null,2);$("copyHint").textContent="Yhteinen V4-varmuuskopio, ei salasanoja.";showDialog("backupDialog");}
+      catch(error){setError("backupError",error.message);if(error.unknown)offline(error);}
     });
-    $("copyBackup").addEventListener("click",async () => {
-      if (!isParent()) return;
-      try {
-        await navigator.clipboard.writeText($("backupText").value); $("copyHint").textContent="JSON kopioitu. Liitä se tiedostoon ja tallenna .json-päätteellä.";
-      } catch (_) {
-        $("backupText").focus(); $("backupText").select(); $("copyHint").textContent="Automaattinen kopiointi ei ole käytettävissä. Teksti on valittu: käytä Ctrl+C tai ⌘C (puhelimella Kopioi).";
-      }
+    $("downloadBackup").addEventListener("click",()=>{
+      if(!isParent())return;const url=URL.createObjectURL(new Blob([$("backupText").value],{type:"application/json"})),a=node("a","");
+      a.href=url;a.download="pisteborssi-varmuuskopio-"+new Date().toISOString().slice(0,10)+".json";document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);
     });
-    function prepareImport(text) {
+    $("copyBackup").addEventListener("click",async()=>{
+      if(!isParent())return;
+      try{await navigator.clipboard.writeText($("backupText").value);$("copyHint").textContent="Varmuuskopio kopioitu.";}
+      catch{$("backupText").focus();$("backupText").select();$("copyHint").textContent="Teksti valittu. Kopioi käsin Ctrl+C / ⌘C tai puhelimen Kopioi.";}
+    });
+    async function prepareImport(text){
       setError("backupError","");
-      try {
-        activeParentRequired();
-        if (new TextEncoder().encode(text).length>MAX_BYTES) throw new Error("Varmuuskopio saa olla enintään 5 Mt.");
-        let raw; try { raw=JSON.parse(text); } catch (_) { throw new Error("Sisältö ei ole kelvollista JSON-tekstiä."); }
-        const imported=migrate(validateBackup(raw),state);
-        const pending=imported.people.filter(p => !p.username).map(p => p.name);
-        confirm("Korvaa nykyiset tiedot?","Tarkistettu varmuuskopio sisältää " + imported.people.length + " henkilöä ja " + imported.entries.length + " kirjausta.\nNykyiset tiedot korvataan kokonaan. V1/V2 säilyttää tämän selaimen jo vaihdetut salasanat; V3 palauttaa tunnukset ja tiivisteet varmuuskopiosta." + (pending.length ? "\nVanhemman täytyy määrittää yksilöllinen tunnus: " + pending.join(", ") + ". Henkilöt ja heidän salasanatiivisteensä säilyvät." : "") + "\nVie ensin nykyiset tiedot varmuuskopioksi. Palautus kirjaa sinut ulos.","Palauta varmuuskopio",() => {
-          activeParentRequired(); historyLimit=50; commit(imported,"Varmuuskopio palautettu. Henkilöt, pisteet ja historia päivitettiin.");
-          clearSession();
-        });
-      } catch (error) { setError("backupError",error.message); }
+      try{
+        activeParentRequired();if(new TextEncoder().encode(text).length>2*1024*1024)throw new Error("Tuonnin raja on 2 MiB.");
+        let raw;try{raw=JSON.parse(text);}catch{throw new Error("JSON ei kelpaa.");}
+        // Never transmit local passwords, hashes, email addresses or username mappings.
+        const backup={app:raw.app,version:raw.version,people:Array.isArray(raw.people)?raw.people.map(p=>({id:p.id,name:p.name,role:p.role,archived:p.archived})):raw.people,entries:raw.entries};
+        const data=await mutate("import-preview",{backup}),summary=data.summary;
+        if(!data.canCommit)throw new Error("Tuonti pysähtyi ristiriitaisiin tunnisteisiin: "+summary.conflicts.slice(0,12).map(c=>c.kind+" "+c.id).join(", ")+". Nykyisiä tietoja ei muutettu. Korjaa lähde tai yhteiset tiedot ja esikatsele uudelleen.");
+        confirm("Yhdistä tarkistetut kirjaukset?","Uusia henkilöitä: "+summary.newPeople+"\nUusia kirjauksia: "+summary.newEntries+"\nSamat tunnisteet (ei kahdenneta): "+summary.duplicates+"\nNykyisiä tietoja tai verkkosalasanoja ei korvata. Tuoduille uusille henkilöille luodaan verkkotunnus erikseen.","Yhdistä yhteisiin tietoihin",async()=>{activeParentRequired();await mutate("import-commit",{previewId:data.previewId});$("importText").value="";$("backupFile").value="";feedback("Vanha historia yhdistetty yhteiseen tietokantaan.");});
+      }catch(error){setError("backupError",error.message);}
     }
-    $("backupFile").addEventListener("change",async () => {
-      const file=$("backupFile").files[0]; if (!file) return;
-      try {
-        activeParentRequired();
-        if (file.size>MAX_BYTES) throw new Error("Varmuuskopio saa olla enintään 5 Mt.");
-        prepareImport(await file.text());
-      } catch (error) { setError("backupError",error.message); }
-      $("backupFile").value="";
-    });
-    $("importPaste").addEventListener("click",() => prepareImport($("importText").value));
-    $("feedbackClose").addEventListener("click",() => { clearTimeout(toastTimer); $("feedback").hidden=true; });
-    window.addEventListener("storage",event => {
-      if (storageMode==="browser" && (event.key===KEY || event.key===null)) { otherWindow=true; renderStorage(); feedback("Toinen ikkuna muutti tallennusta. Vie tämän ikkunan tiedot ja lataa sivu uudelleen."); }
-    });
-    window.addEventListener("beforeunload",event => {
-      if (storageMode==="memory" && changedThisSession) { event.preventDefault(); event.returnValue=""; }
-    });
-    if (migrationPending && storageMode === "browser") {
-      try {
-        const serialized=JSON.stringify(state);
-        window.localStorage.setItem(KEY,serialized); persistedText=serialized;
-      } catch (_) {
-        storageMode="memory"; changedThisSession=true;
-        storageIssue="Vanhojen tietojen päivityksen tallennus epäonnistui. Vie varmuuskopio kirjautumisen jälkeen.";
-      }
-    }
+    $("backupFile").addEventListener("change",async()=>{const file=$("backupFile").files[0];if(!file)return;await prepareImport(await file.text());$("backupFile").value="";});
+    $("importPaste").addEventListener("click",()=>prepareImport($("importText").value));
+    $("feedbackClose").addEventListener("click",()=>{clearTimeout(toastTimer);$("feedback").hidden=true;});
     window.addEventListener("resize",refreshViewport);
-    window.visualViewport?.addEventListener("resize",refreshViewport);
-    window.visualViewport?.addEventListener("scroll",refreshViewport);
-    refreshViewport(); renderAll(); updateTopicForm();
-    if (startupError) setError("loginError",startupError);
+    window.visualViewport?.addEventListener("resize",refreshViewport);window.visualViewport?.addEventListener("scroll",refreshViewport);
+    document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncServer();});
+    setInterval(()=>{if(!document.hidden)syncServer();},8000);
+    refreshViewport();renderAll();updateTopicForm();syncServer();
+
   })();
   </script>
 </body>
