@@ -4,7 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
   <meta name="color-scheme" content="light dark">
-  <meta name="theme-color" content="#f4f0e8">
+  <meta name="theme-color" content="#72548e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Pistebörssi">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="icon" href="/icons/pisteborssi-logo.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png">
   <title>Pistebörssi — pienistä teoista iso ilo</title>
   <style>
     :root {
@@ -56,7 +62,7 @@
     .family-heading { margin-block-end: 16px; }
     #entryPanel { scroll-margin-block-start: 16px; }
     .brand { display: inline-flex; align-items: center; gap: 12px; min-block-size: 44px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 1.3rem; letter-spacing: -.035em; }
-    .brand-mark { display: grid; place-items: center; inline-size: 42px; block-size: 42px; border-radius: 15px; background: var(--accent); color: var(--on-accent); font-family: Georgia, serif; font-size: 1.7rem; }
+    .brand-mark { display: block; inline-size: 42px; block-size: 42px; border-radius: 14px; flex-shrink: 0; }
     .mode { display: flex; align-items: center; gap: 12px; }
     .mode label { color: var(--muted); font-size: .84rem; }
     select, input[type="text"], input[type="password"], input[type="datetime-local"], textarea, input[type="file"] {
@@ -180,7 +186,17 @@
     .skip-link { position: absolute; inset-block-start: -100px; inset-inline-start: 15px; z-index: 99; background: var(--surface); padding: 12px; }
     .skip-link:focus { inset-block-start: 12px; }
     .sr-only { position: absolute; inline-size: 1px; block-size: 1px; padding: 0; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0; }
-    .session { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; justify-content: flex-end; }
+    .session { display: flex; gap: 10px; align-items: center; justify-content: flex-end; position: relative; }
+    .menu-toggle { border: 1px solid var(--line); border-radius: 12px; background: var(--surface); inline-size: 48px; block-size: 48px; display: grid; place-items: center; padding: 0; }
+    .menu-toggle-lines, .menu-toggle-lines::before, .menu-toggle-lines::after { display: block; inline-size: 22px; block-size: 2px; border-radius: 2px; background: currentColor; content: ""; }
+    .menu-toggle-lines { position: relative; }
+    .menu-toggle-lines::before { position: absolute; inset-block-start: -7px; }
+    .menu-toggle-lines::after { position: absolute; inset-block-start: 7px; }
+    .app-menu { position: absolute; inset-block-start: 56px; inset-inline-end: 0; z-index: 30; inline-size: min(290px, calc(100vw - 32px)); padding: 10px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: 0 18px 50px #302d3430; }
+    .app-menu-user { padding: 10px 12px 12px; color: var(--muted); font-size: .84rem; border-block-end: 1px solid var(--line); margin-block-end: 6px; overflow-wrap: anywhere; }
+    .menu-item { inline-size: 100%; justify-content: flex-start; border: 0; background: transparent; }
+    .menu-item[aria-current="page"] { background: var(--accent-soft); color: var(--accent-ink); }
+    .tabs { display: none !important; }
     .session-name { font-size: .86rem; color: var(--muted); overflow-wrap: anywhere; }
     .login-panel { max-inline-size: 480px; margin-inline: auto; margin-block: 12px 35px; }
     .login-panel .help-link { margin-block-start: 12px; }
@@ -270,13 +286,19 @@
     <header>
       <div class="topbar">
         <div class="brand-actions">
-          <a class="brand" href="#main" aria-label="Pistebörssi, siirry sisältöön"><span class="brand-mark" aria-hidden="true">p.</span>Pistebörssi</a>
+          <a class="brand" href="#main" aria-label="Pistebörssi, siirry sisältöön"><img class="brand-mark" src="/icons/pisteborssi-logo.svg" alt=""><span>Pistebörssi</span></a>
           <button class="button primary quick-entry no-print" id="quickEntry" type="button" aria-controls="entryPanel" aria-label="Kirjaa piste: avaa pistekirjauslomake"><span class="quick-symbol" aria-hidden="true">±</span><span>Kirjaa piste</span></button>
         </div>
         <div class="session no-print" id="sessionInfo" hidden>
-          <span class="session-name" id="sessionName"></span>
-          <button class="button compact" id="accountOpen" aria-label="Vaihda oma salasana">Salasana</button>
-          <button class="button compact" id="logout" aria-label="Kirjaudu ulos">Ulos</button>
+          <button class="menu-toggle" id="menuToggle" type="button" aria-label="Avaa valikko" aria-expanded="false" aria-controls="appMenu"><span class="menu-toggle-lines" aria-hidden="true"></span></button>
+          <nav class="app-menu" id="appMenu" aria-label="Pistebörssin valikko" hidden>
+            <div class="app-menu-user" id="sessionName"></div>
+            <button class="button menu-item" type="button" data-view="scores" aria-current="page">Pistetilanne</button>
+            <button class="button menu-item" type="button" data-view="history">Historia</button>
+            <button class="button menu-item" type="button" data-view="family">Perhe ja tiedot</button>
+            <button class="button menu-item" id="accountOpen" type="button">Vaihda salasana</button>
+            <button class="button menu-item danger" id="logout" type="button">Kirjaudu ulos</button>
+          </nav>
         </div>
       </div>
       <div class="storage" id="storageStatus" role="status" aria-live="polite">
@@ -399,7 +421,7 @@
         <p class="notice" id="roleNotice"><strong>Yhteinen verkkotallennus.</strong> Kaikki kirjautuneet näkevät saman Supabasen tietokannan Vercelin palvelin-API:n kautta. Palvelin varmistaa kirjautumisen ja käyttöoikeudet jokaisessa pyynnössä. Näkymä päivittyy noin 8 sekunnin välein ja kirjauksen jälkeen. Yhteyskatkossa ei tallenneta paikallista kopiota. Maksukuittaus ei siirrä rahaa.</p>
         <p class="helper" id="storageDetail"></p>
         <p class="helper">Kirjaudu etunimelläsi: Ilkka, Hanna, Elli, Aava tai Stella. Kirjainkoko ja reunavälilyönnit eivät vaikuta. Uuden henkilön tunnukseksi ehdotetaan etunimeä. Sama tunnus ei voi kuulua kahdelle henkilölle, myöskään arkistoituna.</p>
-        <p class="helper">Salasanat käsitellään palvelimella yksilöllisesti suolattuina scrypt-tiivisteinä. Niitä ei palauteta selaimelle. Istunto käyttää suojattua HttpOnly-evästettä ja päättyy viimeistään 12 tunnissa. Salasananvaihto mitätöi käyttäjän vanhat istunnot.</p>
+        <p class="helper">Salasanat käsitellään palvelimella yksilöllisesti suolattuina scrypt-tiivisteinä. Niitä ei palauteta selaimelle. Istunto käyttää suojattua HttpOnly-evästettä ja säilyy tällä laitteella enintään 365 päivää tai kunnes kirjaudut ulos. Salasanan vaihtaminen mitätöi vanhat istunnot. Salasananvaihto mitätöi käyttäjän vanhat istunnot.</p>
         <p class="notice" id="familyModeNotice"></p>
         <div class="guide-list">
           <div class="guide"><strong>01 · Kirjaa</strong><p>± Kirjaa piste avaa lomakkeen. Valitse pisteet ja pakollinen aihe. Muu-aiheeseen ja miinuspisteisiin tarvitaan syy.</p></div>
@@ -944,6 +966,30 @@
     refreshViewport();renderAll();updateTopicForm();syncServer();
 
   })();
+  </script>
+
+  <script>
+    (() => {
+      const toggle = document.getElementById('menuToggle');
+      const menu = document.getElementById('appMenu');
+      if (!toggle || !menu) return;
+      const closeMenu = () => { menu.hidden = true; toggle.setAttribute('aria-expanded', 'false'); toggle.setAttribute('aria-label', 'Avaa valikko'); };
+      toggle.addEventListener('click', () => {
+        const open = menu.hidden;
+        menu.hidden = !open;
+        toggle.setAttribute('aria-expanded', String(open));
+        toggle.setAttribute('aria-label', open ? 'Sulje valikko' : 'Avaa valikko');
+      });
+      menu.querySelectorAll('[data-view]').forEach(item => item.addEventListener('click', () => {
+        const tab = document.getElementById('tab-' + item.dataset.view);
+        if (tab) tab.click();
+        menu.querySelectorAll('[data-view]').forEach(x => x.removeAttribute('aria-current'));
+        item.setAttribute('aria-current', 'page');
+        closeMenu();
+      }));
+      document.addEventListener('click', event => { if (!menu.hidden && !menu.contains(event.target) && event.target !== toggle && !toggle.contains(event.target)) closeMenu(); });
+      document.addEventListener('keydown', event => { if (event.key === 'Escape') { closeMenu(); toggle.focus(); } });
+    })();
   </script>
 </body>
 </html>

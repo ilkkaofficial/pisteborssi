@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">Pistebörssi</title>
+  <rect width="512" height="512" rx="112" fill="#72548e"/>
+  <text x="92" y="352" fill="#fffdf9" font-family="Georgia, 'Times New Roman', serif" font-size="300" font-weight="700">P</text>
+  <circle cx="389" cy="356" r="46" fill="#c5a6df"/>
+</svg>
