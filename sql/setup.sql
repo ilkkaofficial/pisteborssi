@@ -1,5 +1,5 @@
 -- First install only: run in Supabase SQL Editor as owner. Vercel initializes accounts.
--- This update changes comments only: existing installations need no SQL rerun/migration.
+-- Existing installations with SQLSTATE 42702: run sql/korjaus-42702.sql instead of setup.
 -- Only the Node backend/bootstrap may use the service-role-capable sb_secret_ key.
 -- No anon/authenticated policy exists; SECURITY DEFINER RPCs are the only access path.
 begin;
@@ -205,7 +205,7 @@ create or replace function public.pb_commit(
   p_preview jsonb, p_consume_preview text
 ) returns jsonb language plpgsql security definer
 set search_path = pg_catalog, public, pg_temp as $$
-declare l public.pb_ledger%rowtype; cached jsonb; a jsonb; s jsonb;
+declare l public.pb_ledger%rowtype; cached jsonb; v_account jsonb; v_session jsonb;
 begin
   select * into l from public.pb_ledger where singleton for update;
   if not found then raise exception 'PB_NOT_INITIALIZED'; end if;
@@ -213,23 +213,23 @@ begin
   if cached is not null then return jsonb_build_object('committed', true, 'result', cached); end if;
   if l.revision <> p_expected_revision then return jsonb_build_object('committed', false); end if;
   if p_session_hash is not null and not exists (
-    select 1 from public.pb_sessions s where s.token_hash = p_session_hash
-      and s.person_id = p_actor_id and s.expires_at > now()
+    select 1 from public.pb_sessions as existing_session where existing_session.token_hash = p_session_hash
+      and existing_session.person_id = p_actor_id and existing_session.expires_at > now()
   ) then raise exception 'PB_SESSION_INVALID'; end if;
   if not exists (select 1 from jsonb_array_elements(l.state->'people') p
-    join public.pb_accounts a on a.person_id = p->>'id'
+    join public.pb_accounts as existing_account on existing_account.person_id = p->>'id'
     where p->>'id' = p_actor_id and p->'archived' = 'false'::jsonb) then raise exception 'PB_SESSION_INVALID'; end if;
   perform public.pb_validate_state(p_state);
   perform public.pb_validate_accounts(p_accounts, p_state);
-  for a in select value from jsonb_array_elements(p_accounts) loop
+  for v_account in select value from jsonb_array_elements(p_accounts) loop
     begin
       insert into public.pb_accounts(person_id, username, credential)
-        values (a->>'personId', a->>'username', a->'credential')
+        values (v_account->>'personId', v_account->>'username', v_account->'credential')
       on conflict (person_id) do update set username = excluded.username, credential = excluded.credential;
     exception when unique_violation then raise exception 'PB_USERNAME_TAKEN'; end;
   end loop;
   if not exists (select 1 from jsonb_array_elements(p_state->'people') p
-    join public.pb_accounts a on a.person_id = p->>'id'
+    join public.pb_accounts as existing_account on existing_account.person_id = p->>'id'
     where p->>'role' = 'parent' and p->'archived' = 'false'::jsonb) then raise exception 'PB_LAST_PARENT'; end if;
   if p_consume_preview is not null then
     update public.pb_import_previews set consumed = true
@@ -244,11 +244,11 @@ begin
   end if;
   delete from public.pb_sessions where expires_at <= now() or person_id = p_revoke_actor
     or token_hash in (select jsonb_array_elements_text(p_remove_sessions));
-  for s in select value from jsonb_array_elements(p_sessions) loop
-    if (s->>'expiresAt')::timestamptz > now() + interval '12 hours 1 minute'
-      or (s->>'expiresAt')::timestamptz <= now() then raise exception 'PB_INVALID_SESSION'; end if;
+  for v_session in select value from jsonb_array_elements(p_sessions) loop
+    if (v_session->>'expiresAt')::timestamptz > now() + interval '365 days 1 minute'
+      or (v_session->>'expiresAt')::timestamptz <= now() then raise exception 'PB_INVALID_SESSION'; end if;
     insert into public.pb_sessions(token_hash, person_id, csrf_token, expires_at)
-      values (s->>'tokenHash', s->>'personId', s->>'csrfToken', (s->>'expiresAt')::timestamptz);
+      values (v_session->>'tokenHash', v_session->>'personId', v_session->>'csrfToken', (v_session->>'expiresAt')::timestamptz);
   end loop;
   update public.pb_ledger set state = p_state, revision = revision + 1 where singleton;
   delete from public.pb_import_previews where expires_at <= now();
@@ -267,7 +267,7 @@ end $$;
 create or replace function public.pb_initialize(p_state jsonb, p_accounts jsonb)
 returns jsonb language plpgsql security definer
 set search_path = pg_catalog, public, pg_temp as $$
-declare a jsonb;
+declare v_account jsonb;
 begin
   -- Shared transaction lock serializes first-setup Vercel instances/CLIs, even on an empty ledger.
   perform pg_advisory_xact_lock(713970412651::bigint);
@@ -281,15 +281,15 @@ begin
       <> array['aava','elli','hanna','ilkka','stella']::text[]
     or exists (select 1 from jsonb_array_elements(p_state->'people') p
       where (p->>'id' in ('ilkka','hanna')) <> (p->>'role' = 'parent') or p->'archived' <> 'false'::jsonb)
-    or exists (select 1 from jsonb_array_elements(p_accounts) a
-      where a->'credential'->'mustChange' <> 'true'::jsonb)
+    or exists (select 1 from jsonb_array_elements(p_accounts) as initial_account(value)
+      where initial_account.value->'credential'->'mustChange' <> 'true'::jsonb)
     then raise exception 'PB_INVALID_INITIALIZATION'; end if;
-  for a in select value from jsonb_array_elements(p_accounts) loop
+  for v_account in select value from jsonb_array_elements(p_accounts) loop
     insert into public.pb_accounts(person_id, username, credential)
-      values (a->>'personId', a->>'username', a->'credential');
+      values (v_account->>'personId', v_account->>'username', v_account->'credential');
   end loop;
   if not exists (select 1 from jsonb_array_elements(p_state->'people') p
-    join public.pb_accounts a on a.person_id = p->>'id' where p->>'role' = 'parent')
+    join public.pb_accounts as existing_account on existing_account.person_id = p->>'id' where p->>'role' = 'parent')
     then raise exception 'PB_LAST_PARENT'; end if;
   insert into public.pb_ledger(singleton, state, revision) values (true, p_state, 0);
   return jsonb_build_object('ready', true, 'revision', 0);
