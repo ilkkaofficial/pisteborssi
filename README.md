@@ -94,7 +94,7 @@ Kirjaudu verkkoversioon vanhempana → **Perhe ja tiedot** → tuo vanhan versio
 
 ## Turvallisuus ja toimintarajat
 
-Suolattu scrypt, palvelinroolit, 12 tunnin HttpOnly/Secure/SameSite-istunto, saman alkuperän ja CSRF-tunnisteen tarkistus sekä tietokantaan tallennetut kirjautumisyritysrajat. Salasananvaihto mitätöi kaikki vanhat istunnot. Vain vanhemmat kuittaavat maksuja, korjaavat historiaa ja hallitsevat perhettä; viimeistä kirjautuvaa vanhempaa ei voi arkistoida.
+Suolattu scrypt, palvelinroolit, 365 päivän laitekohtainen HttpOnly/Secure/SameSite-istunto, saman alkuperän ja CSRF-tunnisteen tarkistus sekä tietokantaan tallennetut kirjautumisyritysrajat. Salasananvaihto mitätöi kaikki vanhat istunnot. Vain vanhemmat kuittaavat maksuja, korjaavat historiaa ja hallitsevat perhettä; viimeistä kirjautuvaa vanhempaa ei voi arkistoida.
 
 CAS/revision ja idempotenssi suojaavat samanaikaisia kirjauksia sekä maksukuitteja. Idempotenssiavain säilyy uudelleenyrityksessä; pysyviä avaimia ei vanhenneta. Tulostietueet sisältävät operaation metatiedot, eivät kopioita koko ledgeristä. Seuraa silti Supabasen tallennus- ja käyttörajoja.
 
@@ -113,3 +113,10 @@ Tämän päivityksen tarkistukset: **35/35 testiä läpäisi, ei ohitettuja test
 Oikeaa Supabase/Vercel-yhteyttä tai fyysisiä iPhone-/Android-laitteita ei ollut. SQL:ää ei ajettu oikeassa Postgresissa eikä tuotantotilejä luotu tämän toimituksen aikana. **Käyttöönotossa varmista nykyinen SQL ja Node 22/Vercel -integraatio**, sitten testaa kahdella eri selaimella/laitteella: kirjaus näkyy toisella noin 8 sekunnissa, samanaikaiset kirjaukset säilyvät, maksu ei kahdennu, lapsi ei voi käyttää vanhempitoimintoja, vanha JSON ei kahdennu uudelleentuonnissa ja yhteyskatko näkyy virheenä.
 
 Ohjeet: [Vercelin Node-funktiot](https://vercel.com/docs/functions/runtimes/node-js), [Node-määritykset](https://vercel.com/docs/functions/runtimes/node-js/advanced-node-configuration), [Supabase API](https://supabase.com/docs/guides/api), [API-avaimet](https://supabase.com/docs/guides/getting-started/api-keys), [uudet avaimet](https://supabase.com/docs/guides/getting-started/migrating-to-new-api-keys).
+
+
+### Käyttöliittymä- ja istuntopäivitys
+- Laitekohtainen istunto on enintään 365 päivää ja päättyy uloskirjautumiseen, istunnon vanhenemiseen tai salasanan vaihtoon.
+- Pistebörssi voidaan lisätä iPhonen Koti-valikkoon. Kirjaudu ensimmäisen kerran nimenomaan Koti-valikosta avatussa sovelluksessa.
+- Päänäkymässä näkyy kaikkien lasten pistetilanne. Muut näkymät, salasanan vaihto ja uloskirjautuminen ovat hampurilaisvalikossa.
+- Päivitys ei suorita SQL:ää, alustusta eikä muuta nykyistä Supabase-tietokantaa, tilejä tai salasanoja.
