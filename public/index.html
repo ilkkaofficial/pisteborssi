@@ -345,7 +345,8 @@
                 <label class="choice"><input type="radio" name="topic" value="trash"><span>Roskat</span></label>
                 <label class="choice"><input type="radio" name="topic" value="dishwasher"><span>Pesukoneen tyhjennys</span></label>
                 <label class="choice"><input type="radio" name="topic" value="laundry"><span>Pyykkien laitto</span></label>
-                <label class="choice"><input type="radio" name="topic" value="cooking"><span>Ruoan laitto</span></label>
+                <label class="choice"><input type="radio" name="topic" value="cooking"><span>Ruoanlaitto</span></label>
+                <label class="choice"><input type="radio" name="topic" value="cycling_training"><span>Pyörällä treeneihin</span></label>
                 <label class="choice"><input type="radio" name="topic" value="other"><span>Muu</span></label>
               </div></fieldset>
               <div class="field" id="reasonField" hidden><label for="entryReason">Syy tai tehty työ <span class="helper">(pakollinen)</span></label><textarea id="entryReason" rows="2" maxlength="300" placeholder="Mistä pisteet?"></textarea><span class="helper" id="minusHint">Miinukselle tarvitaan syy.</span></div>
@@ -443,7 +444,7 @@
       <p id="editDescription" style="margin-block-end:18px"></p>
       <form id="editForm" novalidate>
         <div class="field"><label for="editPoints">Pisteet</label><select id="editPoints"><option value="1">+1 piste</option><option value="2">+2 pistettä</option><option value="-1">−1 piste</option><option value="-2">−2 pistettä</option></select></div>
-        <div class="field"><label for="editTopic">Aihe</label><select id="editTopic"><option value="">Valitse aihe</option><option value="walk">Börjen lenkki</option><option value="trash">Roskat</option><option value="dishwasher">Pesukoneen tyhjennys</option><option value="laundry">Pyykkien laitto</option><option value="cooking">Ruoan laitto</option><option value="other">Muu</option></select></div>
+        <div class="field"><label for="editTopic">Aihe</label><select id="editTopic"><option value="">Valitse aihe</option><option value="walk">Börjen lenkki</option><option value="trash">Roskat</option><option value="dishwasher">Pesukoneen tyhjennys</option><option value="laundry">Pyykkien laitto</option><option value="cooking">Ruoanlaitto</option><option value="cycling_training">Pyörällä treeneihin</option><option value="other">Muu</option></select></div>
         <div class="field" id="editReasonField" hidden><label for="editReason">Syy tai tehty työ (pakollinen)</label><textarea id="editReason" rows="3" maxlength="300"></textarea></div>
         <p class="helper">Alkuperäinen lapsi, kirjaaja ja tapahtuma-aika säilyvät. Muutos ja muokkaaja tallentuvat muutoshistoriaan. Myös jo lunastetun palkinnon jälkeinen korjaus vaikuttaa saldoon.</p>
         <p class="form-error" id="editError" role="alert" hidden></p>
@@ -470,7 +471,7 @@
   <script>
   (() => {
     "use strict";
-    const topics = Object.freeze({walk:"Börjen lenkki",trash:"Roskat",dishwasher:"Pesukoneen tyhjennys",laundry:"Pyykkien laitto",cooking:"Ruoan laitto",other:"Muu"});
+    const topics = Object.freeze({walk:"Börjen lenkki",trash:"Roskat",dishwasher:"Pesukoneen tyhjennys",laundry:"Pyykkien laitto",cooking:"Ruoanlaitto",cycling_training:"Pyörällä treeneihin",other:"Muu"});
     const $ = id => document.getElementById(id);
     const node = (tag, cls, text) => { const el = document.createElement(tag); if (cls) el.className = cls; if (text !== undefined) el.textContent = text; return el; };
     const now = () => new Date().toISOString();
