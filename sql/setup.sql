@@ -102,7 +102,7 @@ begin
         or jsonb_typeof(v_entry->'amount') is distinct from 'number'
         then raise exception 'PB_INVALID_STATE'; end if;
     elsif coalesce(v_entry->>'points','') not in ('-2','-1','1','2')
-      or coalesce(v_entry->>'topic','') not in ('walk','trash','dishwasher','laundry','cooking','other')
+      or coalesce(v_entry->>'topic','') not in ('walk','trash','dishwasher','laundry','cooking','cycling_training','other')
       or jsonb_typeof(v_entry->'reason') is distinct from 'string'
       or length(v_entry->>'reason') > 300
       or (v_entry->>'topic' = 'other' and length(btrim(v_entry->>'reason')) = 0)
