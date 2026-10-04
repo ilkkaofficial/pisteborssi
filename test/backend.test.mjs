@@ -707,3 +707,259 @@ test('SQL declares every table protected and grants RPCs only to service_role (s
   assert.match(sql, /pg_advisory_xact_lock/);
   assert.match(sql, /PB_LAST_PARENT/);
 });
+const ruleInput = (title = 'Synteettinen otsikko', content = 'Synteettinen sisältö') => ({ title, content });
+const ruleFixture = (id = 'synthetic-rule') => ({ id, ...ruleInput(), createdBy: 'ilkka', updatedBy: 'ilkka',
+  createdAt: '2026-10-04T10:00:00.000Z', updatedAt: '2026-10-04T10:00:00.000Z' });
+const temporaryRecovery = () => randomBytes(18).toString('base64url');
+
+test('rules start empty; both parents CRUD plain text with stable IDs, order, audit and no point changes', async () => {
+  const f = fixture(), one = await login(f, 'ilkka'), two = await login(f, 'hanna'), reader = await login(f, 'elli');
+  assert.deepEqual(f.db.state.rules, []);
+  await addPoints(f, one, 'elli', 2);
+  const entries = structuredClone(f.db.state.entries);
+  const first = await request(f, 'rule-create', { session: one, body: { ...ruleInput('<img src=x onerror=alert(1)>', '  <script>alert(1)</script>\nExact text  '),
+    id: 'spoof', createdBy: 'elli', updatedBy: 'elli', createdAt: 'spoof', deletedAt: 'spoof' } });
+  const second = await request(f, 'rule-create', { session: two, body: ruleInput('Toinen', 'Toisen sisältö') });
+  assert.equal(first.status, 200); assert.equal(second.status, 200);
+  const original = first.body.state.rules[0];
+  assert.notEqual(original.id, 'spoof'); assert.equal(original.createdBy, 'ilkka'); assert.equal(original.deletedAt, undefined);
+  assert.equal(original.content, '  <script>alert(1)</script>\nExact text  ');
+  const edited = await request(f, 'rule-edit', { session: two, body: { id: original.id, ...ruleInput('Korjattu', 'Korjattu sisältö'), createdBy: 'elli' } });
+  assert.equal(edited.status, 200);
+  assert.deepEqual(edited.body.state.rules.map(r => r.id), [original.id, second.body.ruleId]);
+  const rule = edited.body.state.rules[0];
+  assert.equal(rule.createdAt, original.createdAt); assert.equal(rule.createdBy, 'ilkka'); assert.equal(rule.updatedBy, 'hanna');
+  assert.deepEqual(rule.revisions[0], { at: rule.updatedAt, by: 'hanna', title: original.title, content: original.content });
+  const read = await request(f, 'state', { method: 'GET', session: reader });
+  assert.deepEqual(read.body.state.rules, edited.body.state.rules);
+  const deleted = await request(f, 'rule-delete', { session: one, body: { id: original.id } });
+  assert.equal(deleted.status, 200); assert.equal(deleted.body.state.rules[0].deletedBy, 'ilkka');
+  assert.equal(deleted.body.state.rules[0].revisions.length, 1);
+  assert.equal(deleted.body.state.rules.length, 2);
+  assert.deepEqual(f.db.state.entries, entries); assert.equal(balance(f.db.state, 'elli'), 2);
+  assert.equal((await request(f, 'rule-edit', { session: one, body: { id: original.id, ...ruleInput() } })).status, 404);
+  assert.equal((await request(f, 'rule-delete', { session: one, body: { id: original.id } })).status, 404);
+});
+
+test('all new operations enforce auth, parent roles, origin, CSRF and forced password guards despite spoofed fields', async () => {
+  const f = fixture(), parent = await login(f, 'hanna'), kid = await login(f, 'elli');
+  const ops = ['rule-create', 'rule-edit', 'rule-delete', 'password-reset'];
+  for (const op of ops) {
+    const body = { ...ruleInput(), id: 'aava', actorId: 'hanna', role: 'parent', mustChange: false,
+      currentPassword: passwords.hanna, temporaryPassword: temporaryRecovery() };
+    assert.equal((await request(f, op, { body })).status, 401);
+    assert.equal((await request(f, op, { session: kid, body })).status, 403);
+    assert.equal((await request(f, op, { session: parent, body, headers: { origin: 'https://evil.example' } })).status, 403);
+    assert.equal((await request(f, op, { session: parent, body, headers: { 'x-csrf-token': 'wrong' } })).status, 403);
+  }
+  f.db.accounts.find(a => a.personId === 'hanna').credential.mustChange = true;
+  for (const op of ops) assert.equal((await request(f, op, { session: parent, body: ruleInput() })).body.error.code, 'password_change_required');
+  assert.deepEqual(f.db.state.rules, []);
+});
+
+test('rule field limits, total capacity and edit history are enforced without partial mutations', async () => {
+  const f = fixture(), parent = await login(f, 'ilkka');
+  for (const body of [ruleInput('', 'x'), ruleInput(' ', 'x'), ruleInput('x', ''), ruleInput('x', ' \n'),
+    ruleInput('x'.repeat(121), 'x'), ruleInput('x', 'x'.repeat(4001)), { title: 42, content: 'x' }]) {
+    const before = f.db.fingerprint();
+    assert.equal((await request(f, 'rule-create', { session: parent, body })).status, 400);
+    assert.equal(f.db.fingerprint(), before);
+  }
+  const max = await request(f, 'rule-create', { session: parent, body: ruleInput('x'.repeat(120), 'x'.repeat(4000)) });
+  assert.equal(max.status, 200);
+  f.db.state.rules[0].revisions = Array.from({ length: 100 }, () => ({ at: '2026-10-04T10:00:00Z', by: 'ilkka', ...ruleInput() }));
+  assert.equal((await request(f, 'rule-edit', { session: parent, body: { id: max.body.ruleId, ...ruleInput() } })).body.error.code, 'revision_limit');
+  f.db.state.rules = Array.from({ length: 100 }, (_, n) => ruleFixture('rule-'+n));
+  assert.equal((await request(f, 'rule-create', { session: parent, body: ruleInput() })).body.error.code, 'rules_full');
+  assert.throws(() => assertCapacity({ ...f.db.state, rules: [...f.db.state.rules, ruleFixture('one-more')] }), error => error.status === 409);
+});
+
+test('two parents concurrently create rules, reread authorization and retry identical keys without duplicates', async () => {
+  const f = fixture(), one = await login(f, 'ilkka'), two = await login(f, 'hanna');
+  const results = await Promise.all([one,two].map((session,n) => request(f, 'rule-create', { session, body: ruleInput('Concurrent '+n,'Content '+n) })));
+  assert(results.every(r => r.status === 200)); assert.equal(f.db.state.rules.length, 2); assert(f.db.casConflicts > 0);
+  const sameKey = key(), options = { session: one, idempotencyKey: sameKey, body: ruleInput('Retry', 'Retry content') };
+  const a = await request(f, 'rule-create', options), b = await request(f, 'rule-create', options);
+  assert.equal(a.body.ruleId, b.body.ruleId); assert.equal(f.db.state.rules.length, 3);
+  assert.equal((await request(f, 'rule-create', { ...options, body: ruleInput('Different', 'Different') })).status, 409);
+  const roles = fixture(), roleSession = await login(roles,'ilkka');
+  roles.db.beforeCommit = db => { db.state.people.find(p => p.id === 'ilkka').role = 'child'; db.revision++; };
+  assert.equal((await request(roles, 'rule-create', { session: roleSession, body: ruleInput() })).status, 403);
+  assert.equal(roles.db.state.rules.length, 0);
+  assert.equal(f.db.state.rules.length, 3);
+});
+
+test('old V1–V4 imports preserve existing rules, V4 exports roundtrip/dedupe and rule conflicts block the whole import', async () => {
+  const f = fixture(), parent = await login(f, 'ilkka');
+  const created = await request(f, 'rule-create', { session: parent, body: ruleInput() });
+  for (const version of [1,2,3,4]) {
+    const backup = { ...initialState(), version }; delete backup.rules;
+    const preview = await request(f, 'import-preview', { session: parent, body: { backup } });
+    assert.equal(preview.status, 200); assert.equal(preview.body.summary.newRules, 0);
+    assert.equal((await request(f, 'import-commit', { session: parent, body: { previewId: preview.body.previewId } })).status, 200);
+    assert.equal(f.db.state.rules.length, 1);
+  }
+  const exported = (await request(f, 'backup', { method: 'GET', session: parent })).body.backup;
+  assert.equal(exported.rules[0].id, created.body.ruleId);
+  const preview = await request(f, 'import-preview', { session: parent, body: { backup: exported } });
+  assert.equal(preview.body.summary.newRules, 0); assert.equal(preview.body.canCommit, true);
+  const conflict = structuredClone(exported); conflict.rules[0].content = 'Conflicting';
+  conflict.entries.push({ id: 'must-not-import', kind: 'points', childId: 'elli', actorId: 'ilkka', createdAt: '2026-10-04T10:00:00Z', points: 1, topic: 'walk', reason: '' });
+  const blocked = await request(f, 'import-preview', { session: parent, body: { backup: conflict } });
+  assert.equal(blocked.body.canCommit, false); assert.deepEqual(blocked.body.summary.conflicts, [{ kind: 'rule', id: created.body.ruleId }]);
+  assert.equal((await request(f, 'import-commit', { session: parent, body: { previewId: blocked.body.previewId } })).status, 409);
+  assert.equal(f.db.state.entries.length, 0); assert.equal(f.db.state.rules[0].content, exported.rules[0].content);
+  const imported = structuredClone(exported); imported.rules.push(ruleFixture('new-import-rule'));
+  const incoming = await request(f, 'import-preview', { session: parent, body: { backup: imported } });
+  assert.equal(incoming.body.summary.newRules, 1);
+  assert.equal((await request(f, 'import-commit', { session: parent, body: { previewId: incoming.body.previewId } })).status, 200);
+  assert.deepEqual(f.db.state.rules.map(r => r.id), [created.body.ruleId, 'new-import-rule']);
+});
+
+test('rule validation rejects typed, duplicate, unknown, reference, timestamp and audit errors in backups/snapshots/mocks', async () => {
+  const { parseBackup, rulesValid } = await import('../lib/ledger.js');
+  const base = initialState(), r = ruleFixture();
+  for (const rules of [null, {}, [r,r], [{ ...r, title: '' }], [{ ...r, content: [] }], [{ ...r, createdAt: 'bad' }],
+    [{ ...r, updatedAt: '2025-01-01T00:00:00Z' }], [{ ...r, createdBy: 'elli' }], [{ ...r, credential: 'never public' }],
+    [{ ...r, deletedBy: 'ilkka' }], [{ ...r, deletedAt: 'bad', deletedBy: 'ilkka' }],
+    [{ ...r, revisions: [{ at: r.createdAt, by: 'elli', ...ruleInput() }] }], [{ ...r, revisions: null }]]) {
+    assert.equal(rulesValid(rules,base.people), false);
+    assert.throws(() => parseBackup({ ...base, rules }));
+    const f = fixture({ state: { ...base, rules } });
+    assert.equal((await request(f, 'session', { method: 'GET' })).status, 503);
+    assert.throws(() => f.db.rpc('pb_initialize', { p_state: { ...base,rules },p_accounts: initialAccounts }), /PB_INVALID_STATE/);
+  }
+  const old = structuredClone(base); delete old.rules;
+  const f = fixture({ state: old }), parent = await login(f,'ilkka');
+  assert.deepEqual((await request(f,'state',{method:'GET',session:parent})).body.state.rules, []);
+  assert.equal(Object.hasOwn(f.db.state,'rules'), true); // login safely commits normalized empty array
+  const archivedParent = base.people.find(p => p.id === 'ilkka'); archivedParent.archived = true;
+  assert.equal(rulesValid([r],base.people), true); // archived creator references remain valid
+});
+
+test('both parents can reset another child or parent with reauth, target-only hashes/revocation and forced change', async () => {
+  for (const [actorId,targetId] of [['ilkka','elli'],['hanna','ilkka']]) {
+    const f = fixture(), parent = await login(f,actorId), target = await login(f,targetId), otherTargetSession = await login(f,targetId), unaffected = await login(f,'stella');
+    await addPoints(f,parent,'elli',2);
+    const state = structuredClone(f.db.state), accounts = structuredClone(f.db.accounts), password = temporaryRecovery();
+    const reset = await request(f,'password-reset',{session:parent,body:{id:targetId,currentPassword:passwords[actorId],temporaryPassword:password,
+      mustChange:false,role:'child',credential:{mustChange:false},actorId:'elli'}});
+    assert.equal(reset.status,200); assert.equal(reset.body.resetPersonId,targetId); assert.equal(reset.headers['set-cookie'],undefined);
+    assert.deepEqual(f.db.state,state);
+    assert(f.db.accounts.filter(a=>a.personId!==targetId).every(a=>canonical(a)===canonical(accounts.find(old=>old.personId===a.personId))));
+    const credential=f.db.accounts.find(a=>a.personId===targetId).credential;
+    assert.equal(credential.mustChange,true); assert(await verifyPassword(password,credential));
+    assert.equal((await request(f,'state',{method:'GET',session:target})).status,401);
+    assert.equal((await request(f,'state',{method:'GET',session:otherTargetSession})).status,401);
+    assert.equal((await request(f,'state',{method:'GET',session:parent})).status,200);
+    assert.equal((await request(f,'state',{method:'GET',session:unaffected})).status,200);
+    assert.equal((await request(f,'login',{body:{username:targetId,password:passwords[targetId]}})).status,401);
+    const logged=await request(f,'login',{body:{username:targetId,password}}); assert.equal(logged.status,200);assert.equal(logged.body.user.mustChange,true);
+    const session=sessionFrom(logged);
+    assert.equal((await request(f,'points',{session,body:{childId:'elli',points:1,topic:'walk'}})).body.error.code,'password_change_required');
+    const personal=temporaryRecovery();
+    const changed=await request(f,'password',{session,body:{currentPassword:password,newPassword:personal}});assert.equal(changed.status,200);assert.equal(changed.body.user.mustChange,false);
+    assert.equal((await request(f,'points',{session:sessionFrom(changed),body:{childId:'elli',points:1,topic:'walk'}})).status,200);
+    const backup=(await request(f,'backup',{method:'GET',session:parent})).body;
+    assert(!JSON.stringify(backup).includes(password)&&!JSON.stringify(backup).includes(personal));
+    assert(!JSON.stringify(reset.body).includes(password));assert(!JSON.stringify(f.db.calls).includes(password));
+    assert(!JSON.stringify(f.db.calls).includes(passwords[actorId]));
+    assert(!JSON.stringify([...f.db.idempotency.values()]).includes(password));
+    assert(!/"credential"|"hash"|"salt"/.test(JSON.stringify(reset.body)));
+  }
+});
+
+test('parent reset refuses self, archived/missing accounts, wrong current password and invalid temporary bounds atomically', async () => {
+  const invalids = [
+    { id:'ilkka',error:'self_reset' },{ id:'elli',archive:true,error:'inactive' },{ id:'elli',missing:true,error:'account_missing' },
+    { id:'elli',currentPassword:wrongPassword,error:'invalid_login',status:401 },
+    { id:'elli',temporaryPassword:'x'.repeat(11),error:'invalid_password' },
+    { id:'elli',temporaryPassword:'x'.repeat(257),error:'invalid_password' },
+    { id:'elli',temporaryPassword:' '.repeat(12),error:'invalid_temporary_password' }
+  ];
+  for(const item of invalids){
+    const f=fixture(),parent=await login(f,'ilkka');
+    if(item.archive)f.db.state.people.find(p=>p.id==='elli').archived=true;
+    if(item.missing)f.db.accounts=f.db.accounts.filter(a=>a.personId!=='elli');
+    const before=f.db.fingerprint();
+    const result=await request(f,'password-reset',{session:parent,body:{id:item.id,currentPassword:item.currentPassword??passwords.ilkka,temporaryPassword:item.temporaryPassword??temporaryRecovery()}});
+    assert.equal(result.body.error.code,item.error);assert.equal(result.status,item.status??(item.error==='inactive'?403:400));assert.equal(f.db.fingerprint(),before);
+  }
+});
+
+test('parent reset successful same-key replay/lost response is single effect and bypasses reset attempt increment', async () => {
+  const f=fixture(),parent=await login(f,'ilkka'),target=await login(f,'elli');let lost=false;
+  const handler=createHandler({env,fetchImpl:async(url,options)=>{const response=await f.db.fetch(url,options);if(url.endsWith('/pb_commit')&&!lost){lost=true;throw new Error('Synthetic lost reset response');}return response;}});
+  const password=temporaryRecovery(),options={handler,session:parent,idempotencyKey:key(),body:{id:'elli',currentPassword:passwords.ilkka,temporaryPassword:password}};
+  assert.equal((await request(f,'password-reset',options)).status,503);
+  const revision=f.db.revision,credential=structuredClone(f.db.accounts.find(a=>a.personId==='elli').credential);
+  const retry=await request(f,'password-reset',options);assert.equal(retry.status,200);
+  assert.equal(f.db.revision,revision);assert.deepEqual(f.db.accounts.find(a=>a.personId==='elli').credential,credential);
+  const resetCalls=f.db.calls.filter(c=>c.name==='pb_rate'&&c.args.p_buckets.some(b=>b.limit===5));assert.equal(resetCalls.length,1);
+  assert.equal((await request(f,'state',{method:'GET',session:target})).status,401);
+});
+
+test('five reset attempts per parent across sessions include incorrect reauth and respect durable DB rate limit', async () => {
+  const f=fixture(),one=await login(f,'ilkka'),two=await login(f,'ilkka'),other=await login(f,'hanna');
+  const before=f.db.fingerprint();
+  for(let i=0;i<5;i++)assert.equal((await request(f,'password-reset',{session:i%2?one:two,body:{id:'not-disclosed',currentPassword:wrongPassword,temporaryPassword:temporaryRecovery()}})).body.error.code,'invalid_login');
+  const limited=await request(f,'password-reset',{session:two,body:{id:'elli',currentPassword:passwords.ilkka,temporaryPassword:temporaryRecovery()}});
+  assert.equal(limited.status,429);assert.match(limited.body.error.message,/15 minuuttia/);assert.equal(f.db.fingerprint(),before);
+  assert.equal((await request(f,'password-reset',{session:other,body:{id:'elli',currentPassword:passwords.hanna,temporaryPassword:temporaryRecovery()}})).status,200);
+});
+
+test('concurrent resets explicitly conflict and never lose other accounts, rules or point history', async () => {
+  const f=fixture(),one=await login(f,'ilkka'),two=await login(f,'hanna'),p1=temporaryRecovery(),p2=temporaryRecovery();
+  await request(f,'rule-create',{session:one,body:ruleInput()});const rules=structuredClone(f.db.state.rules),otherAccounts=f.db.accounts.filter(a=>a.personId!=='elli');
+  const results=await Promise.all([
+    request(f,'password-reset',{session:one,body:{id:'elli',currentPassword:passwords.ilkka,temporaryPassword:p1}}),
+    request(f,'password-reset',{session:two,body:{id:'elli',currentPassword:passwords.hanna,temporaryPassword:p2}}),
+    request(f,'points',{session:two,body:{childId:'aava',points:2,topic:'cycling_training'}})
+  ]);
+  assert.deepEqual(results.slice(0,2).map(r=>r.status).sort(),[200,409]);assert.equal(results[2].status,200);
+  assert.equal(results.find(r=>r.status===409).body.error.code,'password_reset_conflict');
+  assert.deepEqual(f.db.state.rules,rules);assert.equal(balance(f.db.state,'aava'),2);
+  assert.deepEqual(f.db.accounts.filter(a=>a.personId!=='elli'),otherAccounts);
+  const winner=results[0].status===200?p1:p2;assert(await verifyPassword(winner,f.db.accounts.find(a=>a.personId==='elli').credential));
+});
+
+test('unchanged 365-day sessions and guarded SQL preserve cycling, session bounds, ACL and no application-data writes (static)', async () => {
+  const f=fixture(),parent=await login(f,'ilkka');
+  const expiry=Date.parse([...f.db.sessions.values()][0].expiresAt)-Date.now();
+  assert(expiry>364.99*86400000&&expiry<=365*86400000);
+  const migration=await readFile(new URL('../sql/2026-10-04-family-rules.sql',import.meta.url),'utf8');
+  assert.match(migration,/bb796c3e1a2e6c8b7d70612395d75acf/);assert.match(migration,/PB_RULES_MIGRATION_ALREADY_APPLIED/);
+  assert.match(migration,/PB_RULES_MIGRATION_PRIVILEGES_CHANGED/);assert.match(migration,/cycling_training/);
+  assert.equal((migration.match(/CREATE OR REPLACE FUNCTION/g)||[]).length,1);
+  assert(!/\b(drop|truncate|grant|revoke|delete from|insert into|update public\.|alter table)\b/i.test(migration.replace(/^--.*$/gm,'')));
+  const setup=await readFile(new URL('../sql/setup.sql',import.meta.url),'utf8');assert.match(setup,/interval '365 days 1 minute'/);
+  assert.equal((await request(f,'points',{session:parent,body:{childId:'elli',points:2,topic:'cycling_training'}})).status,200);
+});
+
+test('each parent can create/edit/delete own rules and soft-deleted audits survive V4 backup roundtrip', async () => {
+  const f=fixture();
+  for(const id of ['ilkka','hanna']){
+    const parent=await login(f,id);
+    const created=await request(f,'rule-create',{session:parent,body:ruleInput(id,'Synthetic '+id)});assert.equal(created.status,200);
+    assert.equal((await request(f,'rule-edit',{session:parent,body:{id:created.body.ruleId,...ruleInput(id+' edit','Edited')}})).status,200);
+    assert.equal((await request(f,'rule-delete',{session:parent,body:{id:created.body.ruleId}})).status,200);
+    const backup=(await request(f,'backup',{method:'GET',session:parent})).body.backup;
+    const preview=await request(f,'import-preview',{session:parent,body:{backup}});assert.equal(preview.body.canCommit,true);assert.equal(preview.body.summary.newRules,0);
+    assert.equal((await request(f,'import-commit',{session:parent,body:{previewId:preview.body.previewId}})).status,200);
+  }
+  assert.equal(f.db.state.rules.length,2);assert(f.db.state.rules.every(r=>r.deletedAt&&r.revisions.length===1));
+});
+
+test('rule backup CAS merge retains concurrent new rules and detects newly conflicting rule edits', async () => {
+  const f=fixture(),one=await login(f,'ilkka'),two=await login(f,'hanna');
+  const backup={...initialState(),rules:[ruleFixture('imported-rule')]};
+  const preview=await request(f,'import-preview',{session:one,body:{backup}});
+  f.db.beforeCommit=db=>{db.state.rules.push(ruleFixture('concurrent-rule'));db.revision++;};
+  assert.equal((await request(f,'import-commit',{session:one,body:{previewId:preview.body.previewId}})).status,200);
+  assert.deepEqual(f.db.state.rules.map(r=>r.id),['concurrent-rule','imported-rule']);
+  const exported=(await request(f,'backup',{method:'GET',session:one})).body.backup;
+  const stale=await request(f,'import-preview',{session:one,body:{backup:exported}});
+  assert.equal((await request(f,'rule-edit',{session:two,body:{id:'imported-rule',...ruleInput('Concurrent edit','New content')}})).status,200);
+  assert.equal((await request(f,'import-commit',{session:one,body:{previewId:stale.body.previewId}})).body.error.code,'import_conflict');
+  assert.equal(f.db.state.rules[1].title,'Concurrent edit');
+});
