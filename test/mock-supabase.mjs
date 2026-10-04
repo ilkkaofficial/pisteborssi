@@ -1,5 +1,6 @@
 // Test-only PostgREST/RPC persistence emulator; never imported by production modules.
 import { canonical } from '../lib/crypto.js';
+import { rulesValid } from '../lib/ledger.js';
 
 export class MockSupabase {
   constructor(state = null, accounts = []) {
@@ -55,6 +56,9 @@ export class MockSupabase {
     if (name === 'pb_preview') {
       const preview = this.previews.get(p.p_id);
       return preview?.actorId === p.p_actor_id && Date.parse(preview.expiresAt) > Date.now() ? structuredClone(preview) : null;
+    }
+    if (name === 'pb_initialize' || name === 'pb_commit') {
+      if (!rulesValid(p.p_state.rules, p.p_state.people)) throw new Error('PB_INVALID_STATE');
     }
     if (name === 'pb_initialize') {
       if (this.state || this.accounts.length) throw new Error('PB_ALREADY_INITIALIZED');

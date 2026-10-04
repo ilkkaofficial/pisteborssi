@@ -58,10 +58,13 @@ revoke all on public.pb_ledger, public.pb_accounts, public.pb_sessions,
   public.pb_rate_buckets, public.pb_idempotency_results, public.pb_import_previews
   from public, anon, authenticated, service_role;
 
-create or replace function public.pb_validate_state(p_state jsonb)
-returns void language plpgsql security definer
-set search_path = pg_catalog, public, pg_temp as $$
-declare v_person jsonb; v_entry jsonb;
+CREATE OR REPLACE FUNCTION public.pb_validate_state(p_state jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'pg_catalog', 'public', 'pg_temp'
+AS $function$
+declare v_person jsonb; v_entry jsonb; v_rule jsonb; v_rule_revision jsonb;
 begin
   if jsonb_typeof(p_state) is distinct from 'object'
     or p_state->>'app' is distinct from 'pisteborssi'
@@ -112,7 +115,67 @@ begin
       then raise exception 'PB_INVALID_STATE';
     end if;
   end loop;
-end $$;
+  -- Optional for older V4 ledgers; no data rewrite is needed.
+  if p_state ? 'rules' then
+    if jsonb_typeof(p_state->'rules') is distinct from 'array' then raise exception 'PB_INVALID_STATE'; end if;
+    if jsonb_array_length(p_state->'rules') > 100
+      or (select count(*) <> count(distinct r->>'id') from jsonb_array_elements(p_state->'rules') r)
+      then raise exception 'PB_INVALID_STATE'; end if;
+    for v_rule in select value from jsonb_array_elements(p_state->'rules') loop
+      if jsonb_typeof(v_rule) is distinct from 'object'
+        or jsonb_typeof(v_rule->'id') is distinct from 'string'
+        or coalesce(v_rule->>'id','') !~ '^[a-zA-Z0-9_-]{1,100}$'
+        or jsonb_typeof(v_rule->'title') is distinct from 'string'
+        or length(v_rule->>'title') > 120 or length(btrim(v_rule->>'title')) < 1 or (v_rule->>'title') ~ '^[[:space:]]*$'
+        or jsonb_typeof(v_rule->'content') is distinct from 'string'
+        or length(v_rule->>'content') > 4000 or length(btrim(v_rule->>'content')) < 1 or (v_rule->>'content') ~ '^[[:space:]]*$'
+        or jsonb_typeof(v_rule->'createdBy') is distinct from 'string'
+        or jsonb_typeof(v_rule->'updatedBy') is distinct from 'string'
+        or not exists (select 1 from jsonb_array_elements(p_state->'people') p
+          where p->>'id' = v_rule->>'createdBy' and p->>'role' = 'parent')
+        or not exists (select 1 from jsonb_array_elements(p_state->'people') p
+          where p->>'id' = v_rule->>'updatedBy' and p->>'role' = 'parent')
+        or jsonb_typeof(v_rule->'createdAt') is distinct from 'string'
+        or length(v_rule->>'createdAt') > 40 or coalesce(v_rule->>'createdAt','') !~ '^\d{4}-\d\d-\d\dT'
+        or jsonb_typeof(v_rule->'updatedAt') is distinct from 'string'
+        or length(v_rule->>'updatedAt') > 40 or coalesce(v_rule->>'updatedAt','') !~ '^\d{4}-\d\d-\d\dT'
+        or (v_rule - array['id','title','content','createdAt','createdBy','updatedAt','updatedBy','revisions','deletedAt','deletedBy']) <> '{}'::jsonb
+        then raise exception 'PB_INVALID_STATE'; end if;
+      if (v_rule->>'updatedAt')::timestamptz < (v_rule->>'createdAt')::timestamptz then raise exception 'PB_INVALID_STATE'; end if;
+      if v_rule ? 'revisions' then
+        if jsonb_typeof(v_rule->'revisions') is distinct from 'array' then raise exception 'PB_INVALID_STATE'; end if;
+        if jsonb_array_length(v_rule->'revisions') > 100 then raise exception 'PB_INVALID_STATE'; end if;
+        for v_rule_revision in select value from jsonb_array_elements(v_rule->'revisions') loop
+          if jsonb_typeof(v_rule_revision) is distinct from 'object'
+            or (v_rule_revision - array['at','by','title','content']) <> '{}'::jsonb
+            or jsonb_typeof(v_rule_revision->'title') is distinct from 'string'
+            or length(v_rule_revision->>'title') > 120 or length(btrim(v_rule_revision->>'title')) < 1 or (v_rule_revision->>'title') ~ '^[[:space:]]*$'
+            or jsonb_typeof(v_rule_revision->'content') is distinct from 'string'
+            or length(v_rule_revision->>'content') > 4000 or length(btrim(v_rule_revision->>'content')) < 1 or (v_rule_revision->>'content') ~ '^[[:space:]]*$'
+            or jsonb_typeof(v_rule_revision->'by') is distinct from 'string'
+            or not exists (select 1 from jsonb_array_elements(p_state->'people') p
+              where p->>'id' = v_rule_revision->>'by' and p->>'role' = 'parent')
+            or jsonb_typeof(v_rule_revision->'at') is distinct from 'string'
+            or length(v_rule_revision->>'at') > 40 or coalesce(v_rule_revision->>'at','') !~ '^\d{4}-\d\d-\d\dT'
+            then raise exception 'PB_INVALID_STATE'; end if;
+          perform (v_rule_revision->>'at')::timestamptz;
+        end loop;
+      end if;
+      if (v_rule ? 'deletedAt') <> (v_rule ? 'deletedBy') then raise exception 'PB_INVALID_STATE'; end if;
+      if v_rule ? 'deletedAt' then
+        if jsonb_typeof(v_rule->'deletedAt') is distinct from 'string'
+          or length(v_rule->>'deletedAt') > 40 or coalesce(v_rule->>'deletedAt','') !~ '^\d{4}-\d\d-\d\dT'
+          or jsonb_typeof(v_rule->'deletedBy') is distinct from 'string'
+          or not exists (select 1 from jsonb_array_elements(p_state->'people') p
+            where p->>'id' = v_rule->>'deletedBy' and p->>'role' = 'parent')
+          then raise exception 'PB_INVALID_STATE'; end if;
+        if (v_rule->>'deletedAt')::timestamptz < (v_rule->>'createdAt')::timestamptz then raise exception 'PB_INVALID_STATE'; end if;
+      end if;
+    end loop;
+  end if;
+exception when invalid_datetime_format or datetime_field_overflow then
+  raise exception 'PB_INVALID_STATE';
+end $function$;
 
 create or replace function public.pb_validate_accounts(p_accounts jsonb, p_state jsonb)
 returns void language plpgsql security definer

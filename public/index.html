@@ -59,6 +59,13 @@
     .app-help > summary { color: var(--accent-ink); font-weight: 650; }
     .help-body { display: grid; gap: 16px; padding-block: 8px 20px; }
     .help-body .guide-list { margin-block-end: 0; }
+    .rules-panel { margin-block-start: 22px; }
+    .rule-item { border-block-end: 1px solid var(--line); padding-block: 8px; }
+    .rule-item:last-child { border-block-end: 0; }
+    .rule-details { color: var(--ink); font-size: 1rem; margin-block: 0; }
+    .rule-details > summary { font-weight: 650; overflow-wrap: anywhere; }
+    .rule-content { white-space: pre-wrap; overflow-wrap: anywhere; padding-block: 8px 14px; }
+    .rule-actions { margin-block-end: 8px; }
     .family-heading { margin-block-end: 16px; }
     #entryPanel { scroll-margin-block-start: 16px; }
     .brand { display: inline-flex; align-items: center; gap: 12px; min-block-size: 44px; color: var(--ink); text-decoration: none; font-weight: 700; font-size: 1.3rem; letter-spacing: -.035em; }
@@ -295,6 +302,7 @@
             <div class="app-menu-user" id="sessionName"></div>
             <button class="button menu-item" type="button" data-view="scores" aria-current="page">Pistetilanne</button>
             <button class="button menu-item" type="button" data-view="history">Historia</button>
+            <button class="button menu-item" type="button" data-view="rules">Perheen säännöt</button>
             <button class="button menu-item" type="button" data-view="family">Perhe ja tiedot</button>
             <button class="button menu-item" id="accountOpen" type="button">Vaihda salasana</button>
             <button class="button menu-item danger" id="logout" type="button">Kirjaudu ulos</button>
@@ -324,11 +332,16 @@
       <div class="tabs no-print" role="tablist" aria-label="Pistebörssin näkymät">
         <button class="tab" id="tab-scores" role="tab" aria-selected="true" aria-controls="view-scores" tabindex="0">Pistetilanne</button>
         <button class="tab" id="tab-history" role="tab" aria-selected="false" aria-controls="view-history" tabindex="-1">Historia</button>
+        <button class="tab" id="tab-rules" role="tab" aria-selected="false" aria-controls="view-rules" tabindex="-1">Perheen säännöt</button>
         <button class="tab" id="tab-family" role="tab" aria-selected="false" aria-controls="view-family" tabindex="-1">Perhe ja tiedot</button>
       </div>
       <section id="view-scores" role="tabpanel" aria-labelledby="tab-scores">
         <div class="section-heading"><h1 class="view-title">Maksamattomat pisteet</h1><p>10 p = 5 €</p></div>
         <div class="cards" id="scoreCards"></div>
+        <section class="panel rules-panel" aria-labelledby="homeRulesTitle">
+          <div class="section-heading"><h2 id="homeRulesTitle">Perheen säännöt</h2><button class="button compact no-print" type="button" id="allRules">Kaikki säännöt ↗</button></div>
+          <div id="homeRulesList"></div>
+        </section>
         <div class="grid-bottom">
           <section class="panel no-print" id="entryPanel" aria-labelledby="entryTitle" tabindex="-1">
             <h2 id="entryTitle">Kirjaa piste</h2><p class="panel-intro" id="entryIntro">Aihe vaaditaan.</p>
@@ -373,9 +386,16 @@
           <button class="button no-print" id="moreHistory" hidden>Näytä lisää</button>
         </section>
       </section>
+      <section id="view-rules" role="tabpanel" aria-labelledby="tab-rules" hidden>
+        <section class="panel" aria-labelledby="rulesTitle">
+          <div class="section-heading"><h1 class="view-title" id="rulesTitle">Perheen säännöt</h1><button class="button primary no-print" type="button" id="ruleAdd">Lisää sääntö</button></div>
+          <p class="panel-intro">Avaa tarkka sisältö otsikkoa painamalla. Vanhemmat voivat lisätä ja muokata perheen omia sääntöjä.</p>
+          <div id="rulesList"></div>
+        </section>
+      </section>
       <section id="view-family" role="tabpanel" aria-labelledby="tab-family" hidden>
         <div class="section-heading family-heading"><h2>Perhe ja tiedot</h2><a class="button compact help-link" href="#appHelp">Ohjeet</a></div>
-        <p class="notice" id="usernameNotice" hidden>Tuoduilta henkilöiltä voi puuttua verkkotunnus. Vanhempi luo tunnuksen henkilön kohdalta. Olemassa olevia verkkotilejä ei nollata.</p>
+        <p class="notice" id="usernameNotice" hidden>Tuoduilta henkilöiltä voi puuttua verkkotunnus. Vanhempi luo tunnuksen henkilön kohdalta. Olemassa olevan tilin unohtuneen salasanan vanhempi voi korvata tilapäisellä salasanalla.</p>
         <section class="panel account-panel no-print" id="accountPanel" aria-labelledby="passwordTitle">
           <h2 id="passwordTitle">Oma salasana</h2><p class="panel-intro">Valitse oma, vähintään 12 merkin salasana.</p>
           <p class="notice init-notice" id="initialPasswordNotice" hidden>Vaihda aloitussalasana ennen ensimmäisiä kirjauksia.</p>
@@ -411,7 +431,7 @@
           <div class="field no-print"><label for="backupFile">Tuo vanhan version JSON</label><input type="file" id="backupFile" accept=".json,application/json"><span class="helper">Esikatselu ennen vahvistusta. Enintään 2 MiB; ristiriidat eivät ylikirjoita yhteisiä tietoja.</span></div>
           <details class="no-print"><summary>Tai tuo liittämällä JSON-teksti</summary><div class="field" style="margin-block-start:14px"><label for="importText">Varmuuskopion sisältö</label><textarea id="importText" rows="5" spellcheck="false"></textarea></div><button class="button" id="importPaste">Esikatsele tuonti</button></details>
           <p class="form-error" id="backupError" role="alert" hidden></p>
-          <details><summary>Mitä tallennetaan?</summary><p>Yhteiseen tietokantaan tallennetaan nimet, roolit, pisteet, maksukuitit ja muutoshistoria. Salasanat ja istunnot ovat palvelimen suojatussa tallennuksessa, eivät JSON-viennissä. Varmuuskopio on henkilökohtainen: pidä se poissa GitHubista. Vanhan version V1/V2/V3-JSON tuodaan ensin esikatseluun ja sitten vahvistettuna yhdistetään yhteisiin tietoihin. Tunnisteet ja aikaleimat säilyvät, samat kirjaukset eivät kahdennu. Ristiriidat estävät tuonnin; nykyisiä tietoja ei korvata hiljaisesti. Paikallisia salasanoja ei siirretä.</p></details>
+          <details><summary>Mitä tallennetaan?</summary><p>Yhteiseen tietokantaan tallennetaan nimet, roolit, pisteet, maksukuitit, perheen säännöt ja muutoshistoria. Salasanat ja istunnot ovat palvelimen suojatussa tallennuksessa, eivät JSON-viennissä. Varmuuskopio on henkilökohtainen: pidä se poissa GitHubista. Vanhan version V1/V2/V3/V4-JSON tuodaan ensin esikatseluun ja sitten vahvistettuna yhdistetään yhteisiin tietoihin. Tunnisteet ja aikaleimat säilyvät, samat kirjaukset eivät kahdennu. Ristiriidat estävät tuonnin; nykyisiä tietoja ei korvata hiljaisesti. Paikallisia salasanoja ei siirretä. Säännöt säilyvät, vaikka vanhasta varmuuskopiosta puuttuisi sääntöluettelo.</p></details>
         </section>
       </section>
       </div>
@@ -422,7 +442,7 @@
         <p class="notice" id="roleNotice"><strong>Yhteinen verkkotallennus.</strong> Kaikki kirjautuneet näkevät saman Supabasen tietokannan Vercelin palvelin-API:n kautta. Palvelin varmistaa kirjautumisen ja käyttöoikeudet jokaisessa pyynnössä. Näkymä päivittyy noin 8 sekunnin välein ja kirjauksen jälkeen. Yhteyskatkossa ei tallenneta paikallista kopiota. Maksukuittaus ei siirrä rahaa.</p>
         <p class="helper" id="storageDetail"></p>
         <p class="helper">Kirjaudu etunimelläsi: Ilkka, Hanna, Elli, Aava tai Stella. Kirjainkoko ja reunavälilyönnit eivät vaikuta. Uuden henkilön tunnukseksi ehdotetaan etunimeä. Sama tunnus ei voi kuulua kahdelle henkilölle, myöskään arkistoituna.</p>
-        <p class="helper">Salasanat käsitellään palvelimella yksilöllisesti suolattuina scrypt-tiivisteinä. Niitä ei palauteta selaimelle. Istunto käyttää suojattua HttpOnly-evästettä ja säilyy tällä laitteella enintään 365 päivää tai kunnes kirjaudut ulos. Salasanan vaihtaminen mitätöi vanhat istunnot. Salasananvaihto mitätöi käyttäjän vanhat istunnot.</p>
+        <p class="helper">Salasanat käsitellään palvelimella yksilöllisesti suolattuina scrypt-tiivisteinä. Niitä ei palauteta selaimelle. Istunto käyttää suojattua HttpOnly-evästettä ja säilyy tällä laitteella enintään 365 päivää tai kunnes kirjaudut ulos. Salasanan vaihtaminen mitätöi vanhat istunnot. Vanhempi voi luoda toiselle aktiiviselle perheenjäsenelle vähintään 12 merkin tilapäisen salasanan vahvistamalla oman nykyisen salasanansa. Kohteen kaikki istunnot päättyvät ja hänen on vaihdettava tilapäinen salasana ennen kirjauksia. Vanhaa salasanaa ei näytetä. Jos unohdat oman salasanasi, pyydä toista vanhempaa auttamaan. Jos molemmat vanhemmat menettävät pääsyn, ota yhteys palvelun ylläpitäjään; julkista ohitustoimintoa ei ole.</p>
         <p class="notice" id="familyModeNotice"></p>
         <div class="guide-list">
           <div class="guide"><strong>01 · Kirjaa</strong><p>± Kirjaa piste avaa lomakkeen. Valitse pisteet ja pakollinen aihe. Muu-aiheeseen ja miinuspisteisiin tarvitaan syy.</p></div>
@@ -449,6 +469,32 @@
         <p class="helper">Alkuperäinen lapsi, kirjaaja ja tapahtuma-aika säilyvät. Muutos ja muokkaaja tallentuvat muutoshistoriaan. Myös jo lunastetun palkinnon jälkeinen korjaus vaikuttaa saldoon.</p>
         <p class="form-error" id="editError" role="alert" hidden></p>
         <div class="dialog-actions"><button type="button" class="button" data-close="editDialog">Peruuta</button><button type="button" class="button primary" id="editSave">Tallenna muutos</button></div>
+      </form>
+    </div>
+  </dialog>
+  <dialog id="ruleDialog" aria-labelledby="ruleDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-head"><h2 id="ruleDialogTitle">Lisää sääntö</h2><button class="close-button" type="button" data-close="ruleDialog" aria-label="Sulje säännön muokkaus">×</button></div>
+      <form id="ruleForm" novalidate>
+        <div class="field"><label for="ruleTitle">Otsikko (1–120 merkkiä)</label><input id="ruleTitle" type="text" maxlength="120" required></div>
+        <div class="field"><label for="ruleContent">Tarkka sisältö (1–4000 merkkiä)</label><textarea id="ruleContent" rows="6" maxlength="4000" required></textarea></div>
+        <p class="helper">Numero 1§, 2§ jne. lisätään automaattisesti. Sisältö tallennetaan tavallisena tekstinä.</p>
+        <p class="form-error" id="ruleError" role="alert" hidden></p>
+        <div class="dialog-actions"><button class="button" type="button" data-close="ruleDialog">Peruuta</button><button class="button primary" type="button" id="ruleSave">Tallenna</button></div>
+      </form>
+    </div>
+  </dialog>
+  <dialog id="resetDialog" aria-labelledby="resetTitle" aria-describedby="resetDescription">
+    <div class="dialog-content">
+      <div class="dialog-head"><h2 id="resetTitle">Luo tilapäinen salasana</h2><button class="close-button" type="button" data-close="resetDialog" aria-label="Sulje salasanan palautus">×</button></div>
+      <p id="resetPerson"></p>
+      <p id="resetDescription">Kohteen kaikki istunnot päättyvät. Hänen on vaihdettava tilapäinen salasana ennen kirjauksia. Kerro uusi salasana hänelle turvallisesti; sitä ei näytetä tallennuksen jälkeen.</p>
+      <form id="resetForm" novalidate>
+        <div class="field"><label for="resetCurrent">Vanhemman oma nykyinen salasana</label><input id="resetCurrent" type="password" autocomplete="current-password" maxlength="256" enterkeyhint="next" required></div>
+        <div class="field"><label for="resetTemporary">Uusi tilapäinen salasana (12–256 merkkiä)</label><input id="resetTemporary" type="password" autocomplete="new-password" minlength="12" maxlength="256" enterkeyhint="next" required></div>
+        <div class="field"><label for="resetRepeat">Uusi tilapäinen salasana uudelleen</label><input id="resetRepeat" type="password" autocomplete="new-password" minlength="12" maxlength="256" enterkeyhint="done" required></div>
+        <p class="form-error" id="resetError" role="alert" hidden></p>
+        <div class="dialog-actions"><button class="button" type="button" data-close="resetDialog">Peruuta</button><button class="button primary" type="button" id="resetSave">Luo tilapäinen salasana</button></div>
       </form>
     </div>
   </dialog>
@@ -480,9 +526,10 @@
     const dateText = value => fmt.format(new Date(value));
     const signed = n => n > 0 ? "+" + n : "−" + Math.abs(n);
 
-    let state={app:"pisteborssi",version:4,people:[],entries:[]}, revision=-1, actorId=null, currentUser=null, csrfToken=null;
+    let state={app:"pisteborssi",version:4,people:[],entries:[],rules:[]}, revision=-1, actorId=null, currentUser=null, csrfToken=null;
     let connected=false, serverReady=false, connectionMessage="Yhdistetään yhteiseen tietokantaan…", authEpoch=0;
     let historyLimit=50, editId=null, credentialsId=null, confirmAction=null, toastTimer;
+    let ruleId=null, resetId=null;
     let mutationBusy=false, loginBusy=false, personBusy=false, personUsernameEdited=false, pending=null, syncing=false;
     const person=id => state.people.find(p=>p.id===id);
     const actor=()=>{const p=person(actorId);return currentUser && p && !p.archived ? p : null;};
@@ -524,16 +571,20 @@
       $("loginSubmit").disabled=loginBusy||!connected||!serverReady;
       $("passwordSubmit").disabled=mutationBusy||!connected;
       $("entrySubmit").disabled=mutationBusy||!connected;
+      const manage=!!actor()&&isParent()&&!currentUser.mustChange&&connected&&!mutationBusy;
+      $("ruleAdd").hidden=!isParent();$("ruleAdd").disabled=!manage;
+      $("ruleSave").disabled=!manage;$("resetSave").disabled=!manage;
     }
     function applyServer(data){
       if(data.state&&Number.isSafeInteger(data.revision)&&data.revision<revision){connected=true;renderStorage();return;}
       if(Object.hasOwn(data,"ready"))serverReady=data.ready;
       if(Object.hasOwn(data,"csrfToken"))csrfToken=data.csrfToken;
       if(Object.hasOwn(data,"user")){
+        if(currentUser&&!data.user)clearSession();
         if((currentUser?.id||null)!==(data.user?.id||null))authEpoch++;
         currentUser=data.user;actorId=currentUser?.id||null;
       }
-      if(!currentUser){state={app:"pisteborssi",version:4,people:[],entries:[]};revision=-1;}
+      if(!currentUser){state={app:"pisteborssi",version:4,people:[],entries:[],rules:[]};revision=-1;}
       else if(data.state&&Number.isSafeInteger(data.revision)&&data.revision>=revision){
         state=data.state;revision=data.revision;
       }
@@ -601,14 +652,14 @@
     }
     $("retrySave").addEventListener("click",async()=>{
       if(!pending||mutationBusy)return;const intent=pending;
-      try{await mutate(intent.op,intent.body);feedback("Tallennuksen tulos varmistettu yhteisestä tietokannasta.");}
+      try{await mutate(intent.op,intent.body);if(intent.op==="password-reset"){$("resetDialog").close();intent.body.currentPassword="";intent.body.temporaryPassword="";}if(["rule-create","rule-edit"].includes(intent.op))$("ruleDialog").close();feedback("Tallennuksen tulos varmistettu yhteisestä tietokannasta.");}
       catch(error){feedback(error.message);}
     });
     function clearSession(){
-      authEpoch++;actorId=null;currentUser=null;csrfToken=null;state={app:"pisteborssi",version:4,people:[],entries:[]};revision=-1;
-      confirmAction=null;editId=null;credentialsId=null;personUsernameEdited=false;
+      authEpoch++;actorId=null;currentUser=null;csrfToken=null;state={app:"pisteborssi",version:4,people:[],entries:[],rules:[]};revision=-1;
+      confirmAction=null;editId=null;credentialsId=null;ruleId=null;resetId=null;personUsernameEdited=false;
       for(const dialog of document.querySelectorAll("dialog[open]"))dialog.close();
-      for(const id of ["loginForm","entryForm","personForm","passwordForm","credentialsForm","editForm"])$(id).reset();
+      for(const id of ["loginForm","entryForm","personForm","passwordForm","credentialsForm","editForm","ruleForm","resetForm"])$(id).reset();
       $("backupText").value="";$("importText").value="";$("backupFile").value="";
       historyLimit=50;openTab("scores");renderAll();
     }
@@ -641,7 +692,10 @@
         tab.setAttribute("aria-selected",String(selected)); tab.tabIndex=selected ? 0 : -1;
         $(tab.getAttribute("aria-controls")).hidden=!selected;
       }
-      if (focus) $("tab-"+name).focus();
+      for (const item of document.querySelectorAll('#appMenu [data-view]')) {
+        if(item.dataset.view===name)item.setAttribute("aria-current","page");else item.removeAttribute("aria-current");
+      }
+      if (focus) { const heading=$("view-"+name).querySelector("h1,h2");if(heading){heading.tabIndex=-1;heading.focus();} }
     }
     function startEntry(childId) {
       if (!actor()) {
@@ -775,6 +829,80 @@
       else for (const e of entries.slice(0,historyLimit)) list.append(renderEntry(e,true));
       $("moreHistory").hidden=entries.length <= historyLimit;
     }
+    function renderRules() {
+      for(const [id,editable] of [["homeRulesList",false],["rulesList",true]]){
+        const list=$(id),expanded=new Set([...list.querySelectorAll("details[open]")].map(el=>el.dataset.ruleId));
+        const focused=document.activeElement?.closest(".rule-item"),focusId=focused?.dataset.ruleId;
+        const focusAction=focused?.contains(document.activeElement)?document.activeElement.dataset.ruleAction:null;
+        const hadFocus=!!focused&&list.contains(focused);
+        list.replaceChildren();
+        const rules=(state.rules||[]).filter(rule=>!rule.deletedAt);
+        if(!rules.length)list.append(node("p","helper","Perheelle ei ole vielä kirjattu sääntöjä."));
+        rules.forEach((rule,index)=>{
+          const item=node("div","rule-item");item.dataset.ruleId=rule.id;
+          const details=node("details","rule-details");details.dataset.ruleId=rule.id;details.open=expanded.has(rule.id);
+          const summary=node("summary","",(index+1)+"§ "+rule.title);summary.dataset.ruleAction="summary";
+          details.append(summary,node("p","rule-content",rule.content));item.append(details);
+          if(editable&&isParent()){
+            const actions=node("div","row-actions rule-actions no-print");
+            for(const [action,label,run] of [["edit","Muokkaa",()=>openRule(rule.id)],["delete","Poista",()=>askDeleteRule(rule.id)]]){
+              const button=node("button","button compact"+(action==="delete"?" danger":""),label);button.type="button";
+              button.dataset.ruleAction=action;button.setAttribute("aria-label",label+" sääntö: "+(index+1)+"§ "+rule.title);
+              button.disabled=currentUser.mustChange||!connected||mutationBusy;button.addEventListener("click",run);actions.append(button);
+            }
+            details.append(actions);
+          }
+          list.append(item);
+          if(hadFocus&&rule.id===focusId)item.querySelector('[data-rule-action="'+focusAction+'"]')?.focus({preventScroll:true});
+        });
+      }
+      // Polling only rebuilds the lists, never an open editor's unsaved fields.
+    }
+    function openRule(id=null){
+      if(!isParent()||currentUser.mustChange||mutationBusy)return;
+      const rule=id?(state.rules||[]).find(r=>r.id===id&&!r.deletedAt):null;if(id&&!rule)return;
+      ruleId=id;$("ruleForm").reset();$("ruleDialogTitle").textContent=id?"Muokkaa sääntöä":"Lisää sääntö";
+      $("ruleTitle").value=rule?.title||"";$("ruleContent").value=rule?.content||"";setError("ruleError","");
+      if(showDialog("ruleDialog"))$("ruleTitle").focus();
+    }
+    $("ruleAdd").addEventListener("click",()=>openRule());
+    $("allRules").addEventListener("click",()=>openTab("rules"));
+    $("ruleDialog").addEventListener("close",()=>{ruleId=null;$("ruleForm").reset();setError("ruleError","");});
+    wireForm("ruleForm","ruleSave",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("ruleError","");
+      try{
+        activeParentRequired();const title=$("ruleTitle").value,content=$("ruleContent").value;
+        if(!title.trim()||title.length>120||!content.trim()||content.length>4000)throw new Error("Otsikko (1–120) ja sisältö (1–4000 merkkiä) ovat pakollisia.");
+        await mutate(ruleId?"rule-edit":"rule-create",{...(ruleId?{id:ruleId}:{}),title,content});
+        $("ruleDialog").close();feedback("Sääntö tallennettu yhteisesti.");
+      }catch(error){setError("ruleError",error.message);}
+    });
+    function askDeleteRule(id){
+      if(!isParent()||currentUser.mustChange)return;
+      const rule=(state.rules||[]).find(r=>r.id===id&&!r.deletedAt);if(!rule)return;
+      confirm("Poista sääntö näkyvistä?",rule.title+"\nSääntö ja muutoshistoria säilyvät varmuuskopiossa. Pisteisiin ei tehdä muutoksia.","Poista sääntö",async()=>{
+        activeParentRequired();await mutate("rule-delete",{id});feedback("Sääntö poistettu näkyvistä. Historia säilyy.");
+      });
+    }
+    function openReset(id){
+      const target=person(id);
+      if(!isParent()||currentUser.mustChange||mutationBusy||!target||target.archived||!target.username||id===actorId)return;
+      resetId=id;$("resetForm").reset();setError("resetError","");$("resetPerson").textContent="Henkilö: "+target.name;
+      if(showDialog("resetDialog"))$("resetCurrent").focus();
+    }
+    $("resetDialog").addEventListener("close",()=>{resetId=null;$("resetForm").reset();setError("resetError","");});
+    wireForm("resetForm","resetSave",async event=>{
+      event.preventDefault();if(mutationBusy)return;setError("resetError","");
+      const body={id:resetId,currentPassword:$("resetCurrent").value,temporaryPassword:$("resetTemporary").value},repeat=$("resetRepeat").value;
+      $("resetForm").reset();
+      try{
+        activeParentRequired();if(body.temporaryPassword!==repeat)throw new Error("Tilapäiset salasanat eivät täsmää.");
+        if(!body.currentPassword)throw new Error("Kirjoita oma nykyinen salasanasi.");
+        if(body.temporaryPassword.length<12||body.temporaryPassword.length>256||!body.temporaryPassword.trim())throw new Error("Tilapäisen salasanan pituus on 12–256 merkkiä.");
+        await mutate("password-reset",body);$("resetDialog").close();feedback("Tilapäinen salasana luotu. Kohteen vanhat istunnot päättyivät; hänen on vaihdettava salasana kirjautuessaan.");
+      }catch(error){setError("resetError",error.message);}
+      finally{if(!pending||pending.body!==body){body.currentPassword="";body.temporaryPassword="";}}
+    });
     function renderPeople() {
       const list=$("peopleList"); list.replaceChildren();
       for (const p of state.people) {
@@ -787,6 +915,11 @@
           b.disabled=!p.archived && p.role === "parent" && !!p.username && !!p.username && state.people.filter(q => q.role==="parent" && !q.archived && q.username && q.username).length === 1;
           if (b.disabled) b.title="Viimeistä aktiivista vanhempaa ei voi arkistoida.";
           b.addEventListener("click",() => askArchive(p.id)); li.append(b);
+          if(p.username&&!p.archived&&p.id!==actorId){
+            const reset=node("button","button compact soft","Luo tilapäinen salasana");reset.type="button";
+            reset.setAttribute("aria-label","Luo tilapäinen salasana: "+p.name);
+            reset.disabled=currentUser.mustChange||!connected||mutationBusy;reset.addEventListener("click",()=>openReset(p.id));li.append(reset);
+          }
           if (!p.username) {
             const setup=node("button","button compact soft","Määritä tunnus");
             setup.setAttribute("aria-label","Määritä tunnus: " + p.name);
@@ -802,9 +935,9 @@
       $("quickEntry").setAttribute("aria-controls",loggedIn ? "entryPanel" : "loginPanel");
       $("quickEntry").setAttribute("aria-label",loggedIn ? "Kirjaa piste: avaa pistekirjauslomake" : "Kirjaa piste: kirjaudu ensin");
       $("familyModeNotice").hidden=!loggedIn;
-      if (loggedIn) { renderActors(); renderCards(); renderHistory(); renderPeople(); }
+      if (loggedIn) { renderActors(); renderCards(); renderHistory(); renderPeople(); renderRules(); }
       else {
-        for (const id of ["scoreCards","recentList","historyList","peopleList","entryChild"]) $(id).replaceChildren();
+        for (const id of ["scoreCards","recentList","historyList","peopleList","entryChild","homeRulesList","rulesList"]) $(id).replaceChildren();
         $("sessionName").textContent=""; $("actorHint").textContent=""; $("familyModeNotice").textContent=isParent() ? "Vanhempi: maksukuitit, korjaukset ja perheen hallinta. Palvelin tarkistaa oikeudet." : "Lapsi: vain omat pistekirjaukset ja oma salasananvaihto. Kaikki yhteiset kirjaukset näkyvät.";
       }
       renderStorage();
@@ -951,10 +1084,10 @@
         activeParentRequired();if(new TextEncoder().encode(text).length>2*1024*1024)throw new Error("Tuonnin raja on 2 MiB.");
         let raw;try{raw=JSON.parse(text);}catch{throw new Error("JSON ei kelpaa.");}
         // Never transmit local passwords, hashes, email addresses or username mappings.
-        const backup={app:raw.app,version:raw.version,people:Array.isArray(raw.people)?raw.people.map(p=>({id:p.id,name:p.name,role:p.role,archived:p.archived})):raw.people,entries:raw.entries};
+        const backup={app:raw.app,version:raw.version,people:Array.isArray(raw.people)?raw.people.map(p=>({id:p.id,name:p.name,role:p.role,archived:p.archived})):raw.people,entries:raw.entries,...(Object.hasOwn(raw,"rules")?{rules:raw.rules}:{})};
         const data=await mutate("import-preview",{backup}),summary=data.summary;
         if(!data.canCommit)throw new Error("Tuonti pysähtyi ristiriitaisiin tunnisteisiin: "+summary.conflicts.slice(0,12).map(c=>c.kind+" "+c.id).join(", ")+". Nykyisiä tietoja ei muutettu. Korjaa lähde tai yhteiset tiedot ja esikatsele uudelleen.");
-        confirm("Yhdistä tarkistetut kirjaukset?","Uusia henkilöitä: "+summary.newPeople+"\nUusia kirjauksia: "+summary.newEntries+"\nSamat tunnisteet (ei kahdenneta): "+summary.duplicates+"\nNykyisiä tietoja tai verkkosalasanoja ei korvata. Tuoduille uusille henkilöille luodaan verkkotunnus erikseen.","Yhdistä yhteisiin tietoihin",async()=>{activeParentRequired();await mutate("import-commit",{previewId:data.previewId});$("importText").value="";$("backupFile").value="";feedback("Vanha historia yhdistetty yhteiseen tietokantaan.");});
+        confirm("Yhdistä tarkistetut kirjaukset?","Uusia henkilöitä: "+summary.newPeople+"\nUusia kirjauksia: "+summary.newEntries+"\nUusia sääntöjä: "+summary.newRules+"\nSamat tunnisteet (ei kahdenneta): "+summary.duplicates+"\nNykyisiä tietoja tai verkkosalasanoja ei korvata. Tuoduille uusille henkilöille luodaan verkkotunnus erikseen.","Yhdistä yhteisiin tietoihin",async()=>{activeParentRequired();await mutate("import-commit",{previewId:data.previewId});$("importText").value="";$("backupFile").value="";feedback("Vanha historia yhdistetty yhteiseen tietokantaan.");});
       }catch(error){setError("backupError",error.message);}
     }
     $("backupFile").addEventListener("change",async()=>{const file=$("backupFile").files[0];if(!file)return;await prepareImport(await file.text());$("backupFile").value="";});
