@@ -16,9 +16,15 @@ let chromium;
 try { ({ chromium } = require('playwright')); } catch {
   try { ({ chromium } = require('/usr/local/lib/node_modules/docgen-utils/node_modules/playwright')); } catch {}
 }
-const configuredBrowser = '/opt/docgen-browsers/chromium-1208/chrome-linux64/chrome';
+const headlessShell = '/opt/docgen-browsers/chromium_headless_shell-1208/chrome-headless-shell-linux64/chrome-headless-shell';
+const configuredBrowser = existsSync(headlessShell) ? headlessShell : '/opt/docgen-browsers/chromium-1208/chrome-linux64/chrome';
 const browserAvailable = chromium && (existsSync(configuredBrowser) || existsSync(chromium.executablePath()));
 const html = readFileSync(new URL('../public/index.html', import.meta.url), 'utf8');
+async function navigateView(page, view) {
+  if (await page.locator('#appMenu').isHidden()) await page.locator('#menuToggle').tap();
+  await page.locator('#appMenu [data-view="'+view+'"] ').tap();
+}
+
 const env = { SUPABASE_URL: 'https://test-project.supabase.co',
   SUPABASE_SECRET_KEY: 'sb_secret_test_only_not_a_real_credential',
   APP_ORIGIN: 'https://pisteborssi.example', RATE_LIMIT_SECRET: randomBytes(32).toString('hex') };
@@ -85,9 +91,9 @@ test('mobile browser: shared visibility, polling, user creation by both parents,
     try {
       const a = await pageFor({ width: 390, height: 844 }), b = await pageFor({ width: 320, height: 740 });
       await login(a.page, 'ilkka'); await login(b.page, 'elli');
-      await b.page.locator('#tab-family').tap();
+      await navigateView(b.page, 'family');
       assert(await b.page.getByRole('button',{name:'Lisää käyttäjä',exact:true}).isDisabled());
-      await b.page.locator('#tab-scores').tap();
+      await navigateView(b.page, 'scores');
       const cookies = await a.context.cookies();
       assert(cookies.some(c=>c.name==='__Host-pisteborssi'&&c.httpOnly&&c.secure&&c.sameSite==='Lax'));
       assert.equal(await a.page.evaluate(()=>document.cookie.includes('__Host-pisteborssi')), false);
@@ -118,13 +124,13 @@ test('mobile browser: shared visibility, polling, user creation by both parents,
       for(const viewport of [{width:320,height:740},{width:390,height:844},{width:568,height:320},{width:844,height:390}]){
         await a.page.setViewportSize(viewport);
         for(const tab of ['scores','history','family']){
-          await a.page.locator('#tab-'+tab).tap();
+          await navigateView(a.page,tab);
           assert(await a.page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1));
           await a.page.locator('#quickEntry').tap();
           assert(await a.page.locator('#entryForm').isVisible());
         }
       }
-      await a.page.locator('#tab-family').tap();
+      await navigateView(a.page, 'family');
       const details=a.page.locator('details').filter({has:a.page.locator('#importText')});
       if(!await a.page.locator('#importText').isVisible())await details.locator('summary').tap();
       const backup={app:'pisteborssi',version:3,
@@ -142,7 +148,7 @@ test('mobile browser: shared visibility, polling, user creation by both parents,
       const c = await pageFor({ width: 320, height: 740 });
       await login(c.page, 'hanna');
       for (const [page, id] of [[a.page, 'ilkka'], [c.page, 'hanna']]) {
-        await page.locator('#tab-family').tap();
+        await navigateView(page, 'family');
         for (const role of ['child', 'parent']) {
           const username = `${id}.${role}`;
           const temporary = randomBytes(3).toString('hex').slice(0, 5);
@@ -163,6 +169,7 @@ test('mobile browser: shared visibility, polling, user creation by both parents,
       }
       await c.context.close();
       const changed=randomBytes(24).toString('base64url');
+      await a.page.locator('#menuToggle').tap();
       await a.page.locator('#accountOpen').tap();
       await a.page.locator('#currentPassword').fill(passwords.ilkka);
       await a.page.locator('#newPassword').fill(changed);
@@ -235,12 +242,102 @@ test('mobile first opening initializes on server, requires twelve-character chan
       handler = createHandler({ env, store });
       await page.reload();
       await page.locator('#appContent').waitFor({state:'visible'});
-      await page.locator('#tab-scores').focus();
-      await page.keyboard.press('End');
-      assert.equal(await page.evaluate(()=>document.activeElement.id),'tab-family');
+      await navigateView(page,'family');
+      await page.locator('#menuToggle').tap();
+      await page.keyboard.press('Escape');
+      assert.equal(await page.evaluate(()=>document.activeElement.id),'menuToggle');
       assert(await page.locator('#personSubmit').isEnabled());
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1));
       assert.equal(db.calls.filter(call=>call.name==='pb_initialize').length,1);
       assert.equal(errors.length,0,errors.join(';'));
     } finally { await browser.close(); }
+  });
+test('mobile rules accordions/poll-safe editor, parent reset dialog, forced change and plaintext XSS safety',
+  { skip: !browserAvailable, timeout: 120000 }, async () => {
+    const browser=await chromium.launch({headless:true,args:['--no-sandbox'],...(existsSync(configuredBrowser)?{executablePath:configuredBrowser}:{})});
+    const db=new MockSupabase(initialState(),accounts),handler=createHandler({env,store:new SupabaseStore(loadConfig(env),db.fetch.bind(db))});
+    const errors=[],responses=[];let loseReset=0;
+    async function makePage(id){
+      const context=await browser.newContext({viewport:{width:320,height:740},isMobile:true,hasTouch:true});
+      await context.route('https://pisteborssi.example/**',async route=>{
+        const request=route.request(),url=new URL(request.url());
+        if(url.pathname==='/')return route.fulfill({status:200,contentType:'text/html',body:html});
+        if(url.pathname!=='/api/pisteborssi')return route.fulfill({status:404,body:''});
+        const output={headers:{}},res={statusCode:0,setHeader(k,v){output.headers[k]=v;},end(v){output.status=this.statusCode;output.body=v;}};
+        await handler({method:request.method(),url:url.pathname+url.search,headers:await request.allHeaders(),body:request.postDataJSON()||{},socket:{remoteAddress:'192.0.2.22'}},res);
+        responses.push(output.body);
+        if(url.searchParams.get('op')==='password-reset'&&output.status===200&&loseReset-->0)return route.fulfill({status:503,contentType:'application/json',body:JSON.stringify({error:{code:'unavailable',message:'Synthetic lost response'}})});
+        return route.fulfill({status:output.status,headers:output.headers,body:output.body});
+      });
+      const page=await context.newPage();page.on('pageerror',error=>errors.push(error.message));await page.goto(env.APP_ORIGIN);
+      await page.waitForFunction(()=>!document.getElementById('loginSubmit').disabled);
+      await page.locator('#loginUsername').fill(id);await page.locator('#loginPassword').fill(passwords[id]);await page.locator('#loginSubmit').tap();
+      await page.locator('#appContent').waitFor({state:'visible'});return {page,context};
+    }
+    try{
+      const parent=await makePage('ilkka'),second=await makePage('hanna'),kid=await makePage('elli');
+      await navigateView(parent.page,'rules');assert.equal(await parent.page.locator('#rulesList details').count(),0);
+      await parent.page.locator('#ruleAdd').tap();await parent.page.locator('#ruleSave').tap();
+      await parent.page.locator('#ruleError').waitFor({state:'visible'});assert.equal(db.state.rules.length,0);
+      await parent.page.locator('#ruleTitle').fill('<img src=x onerror="window.xss=1">');
+      await parent.page.locator('#ruleContent').fill('<script>window.xss=1</script>\nPlain content');
+      await parent.page.locator('#ruleSave').tap();await parent.page.locator('#ruleDialog').waitFor({state:'hidden'});
+      const id=db.state.rules[0].id;
+      assert.equal(await parent.page.locator('#rulesList summary').textContent(),'1§ <img src=x onerror="window.xss=1">');
+      assert.equal(await parent.page.locator('#rulesList details[open]').count(),0);
+      assert(await parent.page.locator('#rulesList [data-rule-action="edit"]').isHidden());
+      assert.equal(await parent.page.locator('#rulesList img,#rulesList script').count(),0);
+      await parent.page.locator('#rulesList summary').focus();await parent.page.keyboard.press('Enter');
+      assert.equal(await parent.page.locator('#rulesList details[open]').count(),1);
+      await parent.page.waitForTimeout(8500);assert.equal(await parent.page.locator('#rulesList details[open]').count(),1);
+      await parent.page.locator('#rulesList [data-rule-action="edit"]').tap();
+      await parent.page.locator('#ruleContent').fill('Unsaved draft after polling');
+      await navigateView(second.page,'rules');await second.page.locator('#ruleAdd').tap();
+      await second.page.locator('#ruleTitle').fill('Second synthetic rule');await second.page.locator('#ruleContent').fill('Second description');
+      await second.page.locator('#ruleSave').tap();await second.page.locator('#ruleDialog').waitFor({state:'hidden'});
+      await parent.page.waitForTimeout(8500);assert.equal(await parent.page.locator('#ruleContent').inputValue(),'Unsaved draft after polling');
+      assert.equal(await parent.page.locator('#rulesList details').count(),2);
+      assert.equal(await parent.page.locator('#rulesList summary').nth(1).textContent(),'2§ Second synthetic rule');
+      await parent.page.locator('#ruleSave').tap();await parent.page.locator('#ruleDialog').waitFor({state:'hidden'});
+      assert.equal(db.state.rules[0].id,id);assert.equal(db.state.rules[0].revisions.length,1);
+      await navigateView(parent.page,'scores');assert.equal(await parent.page.locator('#homeRulesList details').count(),2);
+      assert.equal(await parent.page.locator('#homeRulesList details[open]').count(),0);
+      await parent.page.locator('#homeRulesList summary').first().focus();await parent.page.keyboard.press('Space');
+      assert.equal(await parent.page.locator('#homeRulesList details[open]').count(),1);
+      await parent.page.waitForTimeout(8500);assert.equal(await parent.page.locator('#homeRulesList details[open]').count(),1);
+      await kid.page.bringToFront();await kid.page.waitForFunction(()=>document.querySelectorAll('#homeRulesList details').length===2);
+      await navigateView(kid.page,'rules');assert(await kid.page.locator('#ruleAdd').isHidden());assert.equal(await kid.page.locator('#rulesList button').count(),0);
+      assert.equal(await kid.page.locator('#rulesList details[open]').count(),0);
+      await navigateView(parent.page,'rules');await parent.page.locator('#rulesList [data-rule-action="delete"]').first().tap();
+      await parent.page.locator('#confirmYes').tap();await parent.page.locator('#confirmDialog').waitFor({state:'hidden'});
+      assert.equal(await parent.page.locator('#rulesList summary').textContent(),'1§ Second synthetic rule');
+      assert.equal(db.state.rules.length,2);assert(db.state.rules[0].deletedAt);assert.equal(db.state.entries.length,0);
+      await navigateView(parent.page,'family');
+      assert.equal(await parent.page.getByRole('button',{name:'Luo tilapäinen salasana: Ilkka Paju',exact:true}).count(),0);
+      await parent.page.getByRole('button',{name:'Luo tilapäinen salasana: Elli Paju',exact:true}).tap();
+      assert.match(await parent.page.locator('#resetPerson').textContent(),/Elli/);
+      await parent.page.locator('#resetCurrent').fill(passwords.ilkka);await parent.page.locator('#resetTemporary').fill('x'.repeat(11));await parent.page.locator('#resetRepeat').fill('x'.repeat(11));
+      await parent.page.locator('#resetSave').tap();await parent.page.locator('#resetError').waitFor({state:'visible'});assert.match(await parent.page.locator('#resetError').textContent(),/12–256/);
+      assert.equal(await parent.page.locator('#resetTemporary').inputValue(),'');
+      const temporary=randomBytes(18).toString('base64url');
+      await parent.page.locator('#resetCurrent').fill(passwords.ilkka);await parent.page.locator('#resetTemporary').fill(temporary);await parent.page.locator('#resetRepeat').fill(temporary);
+      loseReset=2;await parent.page.locator('#resetSave').tap();await parent.page.locator('#retrySave').waitFor({state:'visible'});
+      assert.equal(db.accounts.find(a=>a.personId==='elli').credential.mustChange,true);
+      assert.equal(await parent.page.locator('#resetCurrent').inputValue(),'');assert.equal(await parent.page.locator('#resetTemporary').inputValue(),'');
+      // Close the modal to reach the top-level durable retry control.
+      await parent.page.locator('#resetDialog [data-close="resetDialog"]').first().tap();
+      await parent.page.locator('#retrySave').tap();await parent.page.locator('#retrySave').waitFor({state:'hidden'});
+      await kid.page.bringToFront();await kid.page.waitForFunction(()=>!document.getElementById('loginPanel').hidden);
+      await kid.page.locator('#loginUsername').fill('elli');await kid.page.locator('#loginPassword').fill(temporary);await kid.page.locator('#loginSubmit').tap();
+      await kid.page.locator('#initialPasswordNotice').waitFor({state:'visible'});assert(await kid.page.locator('#personSubmit').isDisabled());
+      const personal=randomBytes(18).toString('base64url');await kid.page.locator('#currentPassword').fill(temporary);await kid.page.locator('#newPassword').fill(personal);await kid.page.locator('#repeatPassword').fill(personal);
+      await kid.page.locator('#passwordSubmit').tap();await kid.page.locator('#initialPasswordNotice').waitFor({state:'hidden'});
+      for(const page of [parent.page,second.page,kid.page]){
+        assert.equal(await page.evaluate(()=>window.xss),undefined);
+        assert(await page.evaluate(()=>document.documentElement.scrollWidth<=document.documentElement.clientWidth+1));
+        assert.equal(await page.evaluate(()=>localStorage.length),0);
+      }
+      assert(responses.every(body=>!body.includes(temporary)&&!body.includes(personal)&&!body.includes(passwords.ilkka)&&! /"credential"|"hash"|"salt"/.test(body)));
+      assert.equal(errors.length,0,errors.join(';'));
+    }finally{await browser.close();}
   });
